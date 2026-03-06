@@ -1,4 +1,4 @@
-const { createClient } = require('@libsql/client');
+﻿const { createClient } = require('@libsql/client/web');
 
 const tursoClient = createClient({
     url: process.env.TURSO_DATABASE_URL,
@@ -121,3 +121,4 @@ module.exports = {
     initDB, getAllClients, getClientById, getClientByName, createClient, updateClient, deleteClient,
     getAllOrders, getOrderById, createOrder, deleteOrder, exportAll, importAll,
 };
+
