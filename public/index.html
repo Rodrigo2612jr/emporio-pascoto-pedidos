@@ -98,6 +98,15 @@
         .progress-bar-fill{height:100%;border-radius:3px;transition:width .5s ease;}
         .loading{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:999;display:none;justify-content:center;align-items:center;font-size:1.2rem;color:var(--accent);}
         .loading.active{display:flex;}
+        .msg-preview{background:#e5ddd5;border-radius:12px;padding:16px 20px;margin-top:16px;position:relative;font-size:0.95rem;line-height:1.5;color:#303030;max-width:500px;}
+        .msg-preview::before{content:'';position:absolute;top:12px;left:-8px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:8px solid #e5ddd5;}
+        .msg-preview-label{font-size:0.75rem;color:var(--text-light);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
+        .var-tag{display:inline-block;background:var(--primary);color:#fff;padding:2px 10px;border-radius:12px;font-size:0.8rem;cursor:pointer;transition:all .15s;margin:2px;}
+        .var-tag:hover{background:var(--primary-dark);transform:scale(1.05);}
+        .msg-textarea{width:100%;min-height:120px;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:1rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s;}
+        .msg-textarea:focus{outline:none;border-color:var(--primary);}
+        .msg-saved-indicator{display:inline-flex;align-items:center;gap:6px;color:var(--success);font-size:0.85rem;font-weight:600;opacity:0;transition:opacity .3s;}
+        .msg-saved-indicator.show{opacity:1;}
         @media(max-width:768px){
             .header{padding:16px;flex-direction:column;gap:12px;}.header h1{font-size:1.2rem;}
             .main-content{padding:16px 12px;}.form-row{grid-template-columns:1fr;}.stats-grid{grid-template-columns:1fr 1fr;}
@@ -125,6 +134,7 @@
         <button class="nav-tab" data-tab="pedidos">📋 Todos os Pedidos</button>
         <button class="nav-tab" data-tab="recorrencia">🔄 Recorrência</button>
         <button class="nav-tab" data-tab="retencao" id="navRetencao">🚨 Retenção</button>
+        <button class="nav-tab" data-tab="mensagem">💬 Mensagem</button>
     </div>
     <div class="main-content">
         <!-- DASHBOARD -->
@@ -203,6 +213,42 @@
             <div class="stats-grid" id="retentionStats"></div>
             <div id="retentionList"></div>
         </div>
+        <!-- MENSAGEM WHATSAPP -->
+        <div id="tab-mensagem" class="tab-content">
+            <div class="form-card">
+                <h2>💬 Mensagem Padrão do WhatsApp</h2>
+                <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:16px;">Personalize a mensagem que será enviada aos clientes pelo WhatsApp. Use as variáveis abaixo clicando nelas para inserir no texto:</p>
+                <div style="margin-bottom:16px;">
+                    <span style="font-size:0.8rem;color:var(--text-light);margin-right:8px;">Variáveis disponíveis:</span>
+                    <span class="var-tag" onclick="insertVar('{nome}')">{nome}</span>
+                    <span class="var-tag" onclick="insertVar('{telefone}')">{telefone}</span>
+                    <span class="var-tag" onclick="insertVar('{recorrencia}')">{recorrencia}</span>
+                    <span class="var-tag" onclick="insertVar('{ultimo_pedido}')">{ultimo_pedido}</span>
+                </div>
+                <div class="form-group">
+                    <label>Mensagem <span class="msg-saved-indicator" id="savedIndicator">✅ Salvo!</span></label>
+                    <textarea class="msg-textarea" id="whatsappMsg" placeholder="Digite sua mensagem aqui..."></textarea>
+                </div>
+                <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="saveWhatsAppMsg()">💾 Salvar Mensagem</button>
+                    <button class="btn btn-secondary" onclick="resetWhatsAppMsg()">🔄 Restaurar Padrão</button>
+                    <button class="btn btn-warning" onclick="testWhatsAppMsg()">📱 Testar Mensagem</button>
+                </div>
+                <div class="msg-preview-label" style="margin-top:24px;">👁️ Pré-visualização (exemplo com nome "Maria")</div>
+                <div class="msg-preview" id="msgPreview"></div>
+            </div>
+            <div class="form-card">
+                <h2>📝 Dicas de uso</h2>
+                <ul style="color:var(--text-light);font-size:0.9rem;line-height:2;padding-left:20px;">
+                    <li><strong>{nome}</strong> — Será substituído pelo nome do cliente</li>
+                    <li><strong>{telefone}</strong> — Será substituído pelo telefone do cliente</li>
+                    <li><strong>{recorrencia}</strong> — Mostra a recorrência (semanal, mensal, etc.)</li>
+                    <li><strong>{ultimo_pedido}</strong> — Data do último pedido do cliente</li>
+                    <li>Use emojis para deixar a mensagem mais amigável! 😊💚🛒</li>
+                    <li>A mensagem será usada em <strong>todos</strong> os botões de WhatsApp do sistema</li>
+                </ul>
+            </div>
+        </div>
     </div>
     <!-- MODAL HISTORICO -->
     <div class="modal-overlay" id="clientModal"><div class="modal"><h2><span id="modalClientName">Cliente</span><button class="modal-close" onclick="closeModal()">&times;</button></h2><div id="modalClientInfo" style="margin-bottom:16px;font-size:0.9rem;color:var(--text-light);"></div><h3 style="font-size:1rem;margin-bottom:12px;color:var(--accent);">Histórico de Pedidos</h3><div id="modalTimeline" class="client-timeline"></div></div></div>
@@ -251,6 +297,7 @@ function renderCurrentTab(tab) {
     if(tab==='pedidos'){populateFilterClient();renderOrders();}
     if(tab==='recorrencia') renderRecurrence();
     if(tab==='retencao') renderRetention();
+    if(tab==='mensagem') renderMsgPreview();
     if(tab==='novo-pedido') populateClientDatalist();
 }
 function refreshAllViews() {
@@ -571,11 +618,69 @@ function openClientModal(id){
 }
 function closeModal(){document.getElementById('clientModal').classList.remove('active');}
 
-// ==================== WHATSAPP ====================
-function sendWhatsApp(phone,name){
-    const clean=phone.replace(/\D/g,'');
-    const msg=encodeURIComponent(`Olá ${name}! 😊 Passando para lembrar que estamos à disposição para seu pedido. Pode nos chamar! 💚`);
-    window.open(`https://wa.me/55${clean}?text=${msg}`,'_blank');
+// ==================== WHATSAPP MESSAGE CONFIG ====================
+const DEFAULT_MSG = 'Olá {nome}! 😊 Passando para lembrar que estamos à disposição para seu pedido no Empório Pascoto. Pode nos chamar! 💚';
+
+function getWhatsAppMsg() { return localStorage.getItem('whatsapp_msg') || DEFAULT_MSG; }
+
+function saveWhatsAppMsg() {
+    const msg = document.getElementById('whatsappMsg').value.trim();
+    if (!msg) { showToast('⚠️ A mensagem não pode ficar vazia'); return; }
+    localStorage.setItem('whatsapp_msg', msg);
+    showToast('✅ Mensagem salva com sucesso!');
+    const ind = document.getElementById('savedIndicator'); ind.classList.add('show'); setTimeout(() => ind.classList.remove('show'), 2500);
+    renderMsgPreview();
+}
+
+function resetWhatsAppMsg() {
+    if (!confirm('Restaurar a mensagem padrão?')) return;
+    localStorage.removeItem('whatsapp_msg');
+    document.getElementById('whatsappMsg').value = DEFAULT_MSG;
+    showToast('🔄 Mensagem padrão restaurada!');
+    renderMsgPreview();
+}
+
+function insertVar(v) {
+    const ta = document.getElementById('whatsappMsg');
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + v + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + v.length;
+    ta.focus();
+    renderMsgPreview();
+}
+
+function renderMsgPreview() {
+    const raw = document.getElementById('whatsappMsg')?.value || getWhatsAppMsg();
+    const sample = resolveMsg(raw, 'Maria', '(11) 99999-0000', 'mensal', '05/03/2026');
+    const el = document.getElementById('msgPreview');
+    if (el) el.innerHTML = sample.replace(/\n/g, '<br>');
+}
+
+function resolveMsg(template, name, phone, recurrence, lastOrder) {
+    return template
+        .replace(/\{nome\}/gi, name || '')
+        .replace(/\{telefone\}/gi, phone || '')
+        .replace(/\{recorrencia\}/gi, recurrence || '')
+        .replace(/\{ultimo_pedido\}/gi, lastOrder || 'Nunca');
+}
+
+function sendWhatsApp(phone, name) {
+    const clean = phone.replace(/\D/g, '');
+    const c = _clients.find(x => x.name.toLowerCase() === name.toLowerCase());
+    const co = _orders.filter(o => o.client_name.toLowerCase() === name.toLowerCase()).sort((a, b) => new Date(b.date) - new Date(a.date));
+    const lastDate = co[0] ? formatDate(co[0].date) : 'Nunca';
+    const recurrence = c ? c.recurrence : '';
+    const template = getWhatsAppMsg();
+    const msg = encodeURIComponent(resolveMsg(template, name, phone, recurrence, lastDate));
+    window.open(`https://wa.me/55${clean}?text=${msg}`, '_blank');
+}
+
+function testWhatsAppMsg() {
+    const msg = document.getElementById('whatsappMsg').value.trim();
+    if (!msg) { showToast('⚠️ Escreva uma mensagem primeiro'); return; }
+    const sample = resolveMsg(msg, 'Maria', '(11) 99999-0000', 'mensal', '05/03/2026');
+    const encoded = encodeURIComponent(sample);
+    window.open(`https://wa.me/?text=${encoded}`, '_blank');
 }
 
 // ==================== EXPORT/IMPORT ====================
@@ -648,6 +753,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
 
     // Auto-fill phone when selecting existing client
     setupAutoFill();
+
+    // Load WhatsApp message config
+    document.getElementById('whatsappMsg').value = getWhatsAppMsg();
+    document.getElementById('whatsappMsg').addEventListener('input', renderMsgPreview);
+    renderMsgPreview();
 
     // Load data
     showLoading();
