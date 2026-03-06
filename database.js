@@ -16,7 +16,9 @@ if (IS_TURSO) {
     });
     console.log('  🌐 Banco: Turso (cloud)');
 } else {
-    const Database = require('better-sqlite3');
+    // Dynamic require prevents Vercel from bundling this native module
+    const _mod = 'better-sqlite3';
+    const Database = require(_mod);
     const dataDir = path.join(__dirname, 'data');
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
     sqliteDb = new Database(path.join(dataDir, 'pedidos.db'));
