@@ -5,840 +5,656 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>📦 Gestão de Pedidos WhatsApp - Empório Pascoto</title>
     <style>
-        :root {
-            --primary: #25D366;
-            --primary-dark: #128C7E;
-            --primary-light: #DCF8C6;
-            --accent: #075E54;
-            --danger: #e74c3c;
-            --warning: #f39c12;
-            --success: #27ae60;
-            --bg: #f0f2f5;
-            --card: #ffffff;
-            --text: #1a1a2e;
-            --text-light: #6c757d;
-            --border: #e0e0e0;
-            --shadow: 0 2px 12px rgba(0,0,0,0.08);
+        :root { --primary:#25D366; --primary-dark:#128C7E; --accent:#075E54; --danger:#e74c3c; --warning:#f39c12; --success:#27ae60; --bg:#f0f2f5; --card:#fff; --text:#1a1a2e; --text-light:#6c757d; --border:#e0e0e0; --shadow:0 2px 12px rgba(0,0,0,0.08); }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+        .header{background:linear-gradient(135deg,var(--accent),var(--primary-dark));color:#fff;padding:20px 30px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 15px rgba(0,0,0,0.15);position:sticky;top:0;z-index:100;}
+        .header h1{font-size:1.5rem;font-weight:600;}
+        .header-actions{display:flex;gap:10px;}
+        .header-actions button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;transition:all .2s;}
+        .header-actions button:hover{background:rgba(255,255,255,0.25);}
+        .nav-tabs{display:flex;background:#fff;border-bottom:2px solid var(--border);padding:0 20px;overflow-x:auto;}
+        .nav-tab{padding:14px 24px;border:none;background:none;cursor:pointer;font-size:0.95rem;font-weight:500;color:var(--text-light);border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;position:relative;}
+        .nav-tab:hover{color:var(--primary-dark);}
+        .nav-tab.active{color:var(--primary-dark);border-bottom-color:var(--primary);font-weight:600;}
+        .main-content{max-width:1200px;margin:0 auto;padding:24px 20px;}
+        .tab-content{display:none;}.tab-content.active{display:block;}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
+        .stat-card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow);border-left:4px solid var(--primary);}
+        .stat-card.warning{border-left-color:var(--warning);}.stat-card.danger{border-left-color:var(--danger);}.stat-card.accent{border-left-color:var(--accent);}
+        .stat-card .stat-label{font-size:0.8rem;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+        .stat-card .stat-value{font-size:1.8rem;font-weight:700;color:var(--text);}
+        .stat-card .stat-sub{font-size:0.8rem;color:var(--text-light);margin-top:4px;}
+        .form-card{background:var(--card);border-radius:12px;padding:24px;box-shadow:var(--shadow);margin-bottom:24px;}
+        .form-card h2{font-size:1.15rem;margin-bottom:20px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px;}
+        .form-group{display:flex;flex-direction:column;}
+        .form-group label{font-size:0.85rem;font-weight:600;color:var(--text);margin-bottom:6px;}
+        .form-group input,.form-group select,.form-group textarea{padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;transition:border-color .2s;font-family:inherit;}
+        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);}
+        .btn{padding:10px 24px;border:none;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+        .btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
+        .btn-danger{background:var(--danger);color:#fff;}.btn-danger:hover{background:#c0392b;}
+        .btn-secondary{background:var(--text-light);color:#fff;}.btn-secondary:hover{background:#555;}
+        .btn-warning{background:var(--warning);color:#fff;}.btn-warning:hover{background:#e67e22;}
+        .btn-sm{padding:6px 12px;font-size:0.8rem;}
+        .table-wrapper{background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
+        .table-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
+        .table-header h3{font-size:1rem;color:var(--accent);}
+        .search-box{padding:8px 14px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;width:260px;}
+        .search-box:focus{outline:none;border-color:var(--primary);}
+        table{width:100%;border-collapse:collapse;}
+        thead th{background:#f8f9fa;padding:12px 16px;text-align:left;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-light);border-bottom:2px solid var(--border);}
+        tbody td{padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;}
+        tbody tr:hover{background:#f8fffe;}
+        .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;}
+        .badge-success{background:#d4edda;color:#155724;}.badge-warning{background:#fff3cd;color:#856404;}.badge-danger{background:#f8d7da;color:#721c24;}.badge-info{background:#d1ecf1;color:#0c5460;}
+        .actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
+        .recurrence-status{display:flex;align-items:center;gap:6px;}
+        .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+        .dot-green{background:var(--success);}.dot-yellow{background:var(--warning);}.dot-red{background:var(--danger);}
+        .filter-bar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
+        .filter-bar label{font-weight:600;font-size:0.9rem;}
+        .filter-bar select,.filter-bar input{padding:8px 14px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;}
+        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;justify-content:center;align-items:center;}
+        .modal-overlay.active{display:flex;}
+        .modal{background:#fff;border-radius:16px;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
+        .modal h2{font-size:1.3rem;color:var(--accent);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+        .modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);}
+        .client-timeline{position:relative;padding-left:24px;}
+        .client-timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border);}
+        .timeline-item{position:relative;margin-bottom:16px;padding:12px 16px;background:#f8f9fa;border-radius:8px;}
+        .timeline-item::before{content:'';position:absolute;left:-20px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--primary);}
+        .timeline-date{font-size:0.8rem;color:var(--text-light);}
+        .timeline-value{font-size:1.1rem;font-weight:700;color:var(--accent);}
+        .timeline-obs{font-size:0.85rem;color:var(--text-light);margin-top:4px;}
+        .empty-state{text-align:center;padding:60px 20px;color:var(--text-light);}
+        .empty-state .icon{font-size:3rem;margin-bottom:12px;}
+        .toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;padding:14px 24px;border-radius:10px;font-size:0.9rem;box-shadow:0 8px 25px rgba(0,0,0,0.2);transform:translateY(100px);opacity:0;transition:all .3s ease;z-index:300;}
+        .toast.show{transform:translateY(0);opacity:1;}
+        .retention-alert{background:linear-gradient(135deg,#fff5f5,#ffe0e0);border:2px solid var(--danger);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;}
+        .retention-alert .alert-icon{font-size:2.5rem;flex-shrink:0;}
+        .retention-alert .alert-text h3{color:var(--danger);font-size:1.1rem;margin-bottom:4px;}
+        .retention-alert .alert-text p{color:var(--text-light);font-size:0.85rem;}
+        .urgency-critical{background:#f8d7da;border-left:4px solid var(--danger);}.urgency-high{background:#fff3cd;border-left:4px solid var(--warning);}.urgency-medium{background:#fff8e1;border-left:4px solid #ffb300;}
+        .retention-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:16px;transition:transform .15s;}
+        .retention-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.12);}
+        .retention-card .client-info{flex:1;}
+        .retention-card .client-name{font-size:1.05rem;font-weight:700;color:var(--text);cursor:pointer;}
+        .retention-card .client-name:hover{color:var(--primary-dark);}
+        .retention-card .client-meta{font-size:0.82rem;color:var(--text-light);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;}
+        .retention-card .days-overdue{text-align:center;min-width:80px;}
+        .retention-card .days-overdue .days-number{font-size:1.6rem;font-weight:800;}
+        .retention-card .days-overdue .days-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;}
+        .days-critical .days-number{color:var(--danger);}.days-high .days-number{color:var(--warning);}.days-medium .days-number{color:#ffb300;}
+        .retention-card .card-actions{display:flex;gap:8px;flex-shrink:0;}
+        .badge-count{background:var(--danger);color:#fff;border-radius:50%;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;margin-left:6px;padding:0 5px;animation:pulse-badge 2s infinite;}
+        @keyframes pulse-badge{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+        .retention-empty{text-align:center;padding:60px 20px;}
+        .retention-empty .icon{font-size:4rem;margin-bottom:12px;}
+        .retention-empty h3{color:var(--success);font-size:1.2rem;margin-bottom:8px;}
+        .retention-empty p{color:var(--text-light);font-size:0.9rem;}
+        .progress-bar-container{width:100%;height:6px;background:#e0e0e0;border-radius:3px;margin-top:6px;overflow:hidden;}
+        .progress-bar-fill{height:100%;border-radius:3px;transition:width .5s ease;}
+        .loading{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:999;display:none;justify-content:center;align-items:center;font-size:1.2rem;color:var(--accent);}
+        .loading.active{display:flex;}
+        @media(max-width:768px){
+            .header{padding:16px;flex-direction:column;gap:12px;}.header h1{font-size:1.2rem;}
+            .main-content{padding:16px 12px;}.form-row{grid-template-columns:1fr;}.stats-grid{grid-template-columns:1fr 1fr;}
+            .search-box{width:100%;}.table-header{flex-direction:column;gap:10px;}.nav-tab{padding:12px 16px;font-size:0.85rem;}
+            table{font-size:0.8rem;}thead th,tbody td{padding:8px 10px;}
+            .retention-card{flex-direction:column;align-items:flex-start;}.retention-card .card-actions{width:100%;justify-content:flex-end;}
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-        .header { background: linear-gradient(135deg, var(--accent), var(--primary-dark)); color: white; padding: 20px 30px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 100; }
-        .header h1 { font-size: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        .header-actions { display: flex; gap: 10px; }
-        .header-actions button { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
-        .header-actions button:hover { background: rgba(255,255,255,0.25); }
-
-        .nav-tabs { display: flex; background: white; border-bottom: 2px solid var(--border); padding: 0 20px; overflow-x: auto; }
-        .nav-tab { padding: 14px 24px; border: none; background: none; cursor: pointer; font-size: 0.95rem; font-weight: 500; color: var(--text-light); border-bottom: 3px solid transparent; transition: all 0.2s; white-space: nowrap; }
-        .nav-tab:hover { color: var(--primary-dark); }
-        .nav-tab.active { color: var(--primary-dark); border-bottom-color: var(--primary); font-weight: 600; }
-
-        .main-content { max-width: 1200px; margin: 0 auto; padding: 24px 20px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: var(--card); border-radius: 12px; padding: 20px; box-shadow: var(--shadow); border-left: 4px solid var(--primary); }
-        .stat-card.warning { border-left-color: var(--warning); }
-        .stat-card.danger { border-left-color: var(--danger); }
-        .stat-card.accent { border-left-color: var(--accent); }
-        .stat-card .stat-label { font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-        .stat-card .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--text); }
-        .stat-card .stat-sub { font-size: 0.8rem; color: var(--text-light); margin-top: 4px; }
-
-        .form-card { background: var(--card); border-radius: 12px; padding: 24px; box-shadow: var(--shadow); margin-bottom: 24px; }
-        .form-card h2 { font-size: 1.15rem; margin-bottom: 20px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-        .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.95rem; transition: border-color 0.2s; font-family: inherit; }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); }
-
-        .btn { padding: 10px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-danger:hover { background: #c0392b; }
-        .btn-secondary { background: var(--text-light); color: white; }
-        .btn-secondary:hover { background: #555; }
-        .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
-
-        .table-wrapper { background: var(--card); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
-        .table-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
-        .table-header h3 { font-size: 1rem; color: var(--accent); }
-        .search-box { padding: 8px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.9rem; width: 260px; }
-        .search-box:focus { outline: none; border-color: var(--primary); }
-        table { width: 100%; border-collapse: collapse; }
-        thead th { background: #f8f9fa; padding: 12px 16px; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); border-bottom: 2px solid var(--border); }
-        tbody td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 0.9rem; }
-        tbody tr:hover { background: #f8fffe; }
-
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .badge-success { background: #d4edda; color: #155724; }
-        .badge-warning { background: #fff3cd; color: #856404; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
-        .badge-info { background: #d1ecf1; color: #0c5460; }
-        .actions-cell { display: flex; gap: 6px; }
-
-        .recurrence-status { display: flex; align-items: center; gap: 6px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
-        .dot-green { background: var(--success); }
-        .dot-yellow { background: var(--warning); }
-        .dot-red { background: var(--danger); }
-
-        .filter-bar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
-        .filter-bar label { font-weight: 600; font-size: 0.9rem; }
-        .filter-bar select, .filter-bar input { padding: 8px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 0.9rem; }
-
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
-        .modal-overlay.active { display: flex; }
-        .modal { background: white; border-radius: 16px; width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-        .modal h2 { font-size: 1.3rem; color: var(--accent); margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
-        .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
-
-        .client-timeline { position: relative; padding-left: 24px; }
-        .client-timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--border); }
-        .timeline-item { position: relative; margin-bottom: 16px; padding: 12px 16px; background: #f8f9fa; border-radius: 8px; }
-        .timeline-item::before { content: ''; position: absolute; left: -20px; top: 16px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
-        .timeline-date { font-size: 0.8rem; color: var(--text-light); }
-        .timeline-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
-        .timeline-obs { font-size: 0.85rem; color: var(--text-light); margin-top: 4px; }
-
-        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-light); }
-        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
-
-        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: white; padding: 14px 24px; border-radius: 10px; font-size: 0.9rem; box-shadow: 0 8px 25px rgba(0,0,0,0.2); transform: translateY(100px); opacity: 0; transition: all 0.3s ease; z-index: 300; }
-        .toast.show { transform: translateY(0); opacity: 1; }
-
-        .retention-alert { background: linear-gradient(135deg, #fff5f5, #ffe0e0); border: 2px solid var(--danger); border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
-        .retention-alert .alert-icon { font-size: 2.5rem; flex-shrink: 0; }
-        .retention-alert .alert-text h3 { color: var(--danger); font-size: 1.1rem; margin-bottom: 4px; }
-        .retention-alert .alert-text p { color: var(--text-light); font-size: 0.85rem; }
-        .urgency-critical { background: #f8d7da; border-left: 4px solid var(--danger); }
-        .urgency-high { background: #fff3cd; border-left: 4px solid var(--warning); }
-        .urgency-medium { background: #fff8e1; border-left: 4px solid #ffb300; }
-        .retention-card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 12px; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; gap: 16px; transition: transform 0.15s; }
-        .retention-card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
-        .retention-card .client-info { flex: 1; }
-        .retention-card .client-name { font-size: 1.05rem; font-weight: 700; color: var(--text); cursor: pointer; }
-        .retention-card .client-name:hover { color: var(--primary-dark); }
-        .retention-card .client-meta { font-size: 0.82rem; color: var(--text-light); margin-top: 4px; display: flex; gap: 12px; flex-wrap: wrap; }
-        .retention-card .days-overdue { text-align: center; min-width: 80px; }
-        .retention-card .days-overdue .days-number { font-size: 1.6rem; font-weight: 800; }
-        .retention-card .days-overdue .days-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        .days-critical .days-number { color: var(--danger); }
-        .days-high .days-number { color: var(--warning); }
-        .days-medium .days-number { color: #ffb300; }
-        .retention-card .card-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        .badge-count { background: var(--danger); color: white; border-radius: 50%; min-width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; margin-left: 6px; padding: 0 5px; animation: pulse-badge 2s infinite; }
-        @keyframes pulse-badge { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-        .retention-empty { text-align: center; padding: 60px 20px; }
-        .retention-empty .icon { font-size: 4rem; margin-bottom: 12px; }
-        .retention-empty h3 { color: var(--success); font-size: 1.2rem; margin-bottom: 8px; }
-        .retention-empty p { color: var(--text-light); font-size: 0.9rem; }
-        .progress-bar-container { width: 100%; height: 6px; background: #e0e0e0; border-radius: 3px; margin-top: 6px; overflow: hidden; }
-        .progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
-
-        /* Loading overlay */
-        .loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 999; display: none; justify-content: center; align-items: center; font-size: 1.2rem; color: var(--accent); }
-        .loading.active { display: flex; }
-
-        @media (max-width: 768px) {
-            .header { padding: 16px; flex-direction: column; gap: 12px; }
-            .header h1 { font-size: 1.2rem; }
-            .main-content { padding: 16px 12px; }
-            .form-row { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: 1fr 1fr; }
-            .search-box { width: 100%; }
-            .table-header { flex-direction: column; gap: 10px; }
-            .nav-tab { padding: 12px 16px; font-size: 0.85rem; }
-            table { font-size: 0.8rem; }
-            thead th, tbody td { padding: 8px 10px; }
-            .retention-card { flex-direction: column; align-items: flex-start; }
-            .retention-card .card-actions { width: 100%; justify-content: flex-end; }
-        }
-        @media print {
-            .header, .nav-tabs, .form-card, .header-actions, .actions-cell, .filter-bar { display: none !important; }
-            .table-wrapper { box-shadow: none; }
-            .tab-content { display: block !important; }
-        }
+        @media print{.header,.nav-tabs,.form-card,.header-actions,.actions-cell,.filter-bar{display:none!important;}.table-wrapper{box-shadow:none;}.tab-content{display:block!important;}}
     </style>
 </head>
 <body>
-
     <div class="loading" id="loadingOverlay">⏳ Carregando...</div>
-
     <div class="header">
         <h1>📦 Gestão de Pedidos WhatsApp - Empório Pascoto</h1>
         <div class="header-actions">
-            <button onclick="exportData()">📥 Exportar Dados</button>
-            <button onclick="importDataPrompt()">📤 Importar Dados</button>
+            <button onclick="exportData()">📥 Exportar</button>
+            <button onclick="document.getElementById('importFile').click()">📤 Importar</button>
             <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
         </div>
     </div>
-
-    <div class="nav-tabs">
-        <button class="nav-tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
-        <button class="nav-tab" onclick="switchTab('novo-pedido')">➕ Novo Pedido</button>
-        <button class="nav-tab" onclick="switchTab('clientes')">👥 Clientes</button>
-        <button class="nav-tab" onclick="switchTab('pedidos')">📋 Todos os Pedidos</button>
-        <button class="nav-tab" onclick="switchTab('recorrencia')">🔄 Recorrência</button>
-        <button class="nav-tab" onclick="switchTab('retencao')" id="navRetencao">🚨 Retenção</button>
+    <div class="nav-tabs" id="navTabs">
+        <button class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
+        <button class="nav-tab" data-tab="novo-pedido">➕ Novo Pedido</button>
+        <button class="nav-tab" data-tab="clientes">👥 Clientes</button>
+        <button class="nav-tab" data-tab="pedidos">📋 Todos os Pedidos</button>
+        <button class="nav-tab" data-tab="recorrencia">🔄 Recorrência</button>
+        <button class="nav-tab" data-tab="retencao" id="navRetencao">🚨 Retenção</button>
     </div>
-
     <div class="main-content">
+        <!-- DASHBOARD -->
         <div id="tab-dashboard" class="tab-content active">
             <div class="stats-grid" id="statsGrid"></div>
             <div class="table-wrapper">
                 <div class="table-header"><h3>📋 Últimos Pedidos</h3></div>
-                <table>
-                    <thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Observação</th></tr></thead>
-                    <tbody id="recentOrdersBody"></tbody>
-                </table>
+                <table><thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Observação</th></tr></thead><tbody id="recentOrdersBody"></tbody></table>
             </div>
         </div>
-
+        <!-- NOVO PEDIDO -->
         <div id="tab-novo-pedido" class="tab-content">
             <div class="form-card">
                 <h2>➕ Registrar Novo Pedido</h2>
-                <form id="orderForm" onsubmit="saveOrder(event)">
+                <form id="orderForm">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>Nome do Cliente *</label>
-                            <input type="text" id="orderClient" list="clientList" required placeholder="Digite o nome do cliente" autocomplete="off">
-                            <datalist id="clientList"></datalist>
-                        </div>
-                        <div class="form-group">
-                            <label>Telefone (WhatsApp)</label>
-                            <input type="text" id="orderPhone" placeholder="(00) 00000-0000">
-                        </div>
+                        <div class="form-group"><label>Nome do Cliente *</label><input type="text" id="orderClient" list="clientList" required placeholder="Digite o nome" autocomplete="off"><datalist id="clientList"></datalist></div>
+                        <div class="form-group"><label>Telefone (WhatsApp)</label><input type="text" id="orderPhone" placeholder="(00) 00000-0000"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>Data do Pedido *</label>
-                            <input type="date" id="orderDate" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Valor (R$) *</label>
-                            <input type="number" id="orderValue" step="0.01" min="0" required placeholder="0,00">
-                        </div>
-                        <div class="form-group">
-                            <label>Recorrência do Cliente</label>
-                            <select id="orderRecurrence">
-                                <option value="mensal">Mensal</option>
-                                <option value="quinzenal">Quinzenal</option>
-                                <option value="semanal">Semanal</option>
-                                <option value="bimestral">Bimestral</option>
-                                <option value="trimestral">Trimestral</option>
-                                <option value="avulso">Avulso (sem recorrência)</option>
-                            </select>
+                        <div class="form-group"><label>Data do Pedido *</label><input type="date" id="orderDate" required></div>
+                        <div class="form-group"><label>Valor (R$) *</label><input type="number" id="orderValue" step="0.01" min="0" required placeholder="0,00"></div>
+                        <div class="form-group"><label>Recorrência do Cliente</label>
+                            <select id="orderRecurrence"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso (sem recorrência)</option></select>
                         </div>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Observação</label>
-                            <textarea id="orderObs" rows="2" placeholder="Detalhes do pedido, itens, etc."></textarea>
-                        </div>
-                    </div>
+                    <div class="form-row"><div class="form-group"><label>Observação</label><textarea id="orderObs" rows="2" placeholder="Detalhes do pedido, itens, etc."></textarea></div></div>
                     <button type="submit" class="btn btn-primary">✅ Salvar Pedido</button>
                 </form>
             </div>
             <div class="form-card">
                 <h2>👤 Cadastro Rápido de Cliente</h2>
-                <form id="clientForm" onsubmit="saveClient(event)">
+                <form id="clientForm">
                     <div class="form-row">
-                        <div class="form-group">
-                            <label>Nome *</label>
-                            <input type="text" id="clientName" required placeholder="Nome completo">
-                        </div>
-                        <div class="form-group">
-                            <label>Telefone (WhatsApp)</label>
-                            <input type="text" id="clientPhone" placeholder="(00) 00000-0000">
-                        </div>
-                        <div class="form-group">
-                            <label>Recorrência Padrão</label>
-                            <select id="clientRecurrence">
-                                <option value="mensal">Mensal</option>
-                                <option value="quinzenal">Quinzenal</option>
-                                <option value="semanal">Semanal</option>
-                                <option value="bimestral">Bimestral</option>
-                                <option value="trimestral">Trimestral</option>
-                                <option value="avulso">Avulso</option>
-                            </select>
+                        <div class="form-group"><label>Nome *</label><input type="text" id="clientName" required placeholder="Nome completo"></div>
+                        <div class="form-group"><label>Telefone (WhatsApp)</label><input type="text" id="clientPhone" placeholder="(00) 00000-0000"></div>
+                        <div class="form-group"><label>Recorrência</label>
+                            <select id="clientRecurrence"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso</option></select>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">💾 Cadastrar Cliente</button>
                 </form>
             </div>
         </div>
-
+        <!-- CLIENTES -->
         <div id="tab-clientes" class="tab-content">
             <div class="table-wrapper">
-                <div class="table-header">
-                    <h3>👥 Clientes Cadastrados</h3>
-                    <input type="text" class="search-box" placeholder="🔍 Buscar cliente..." oninput="renderClients(this.value)">
-                </div>
-                <table>
-                    <thead><tr><th>Nome</th><th>Telefone</th><th>Recorrência</th><th>Total Pedidos</th><th>Último Pedido</th><th>Status</th><th>Ações</th></tr></thead>
-                    <tbody id="clientsBody"></tbody>
-                </table>
+                <div class="table-header"><h3>👥 Clientes Cadastrados</h3><input type="text" class="search-box" placeholder="🔍 Buscar cliente..." id="clientSearch"></div>
+                <table><thead><tr><th>Nome</th><th>Telefone</th><th>Recorrência</th><th>Pedidos</th><th>Último Pedido</th><th>Status</th><th>Ações</th></tr></thead><tbody id="clientsBody"></tbody></table>
             </div>
         </div>
-
+        <!-- PEDIDOS -->
         <div id="tab-pedidos" class="tab-content">
             <div class="filter-bar">
-                <label>📅 Filtrar por mês:</label>
-                <input type="month" id="filterMonth" onchange="renderOrders()">
-                <label>👤 Cliente:</label>
-                <select id="filterClient" onchange="renderOrders()"><option value="">Todos</option></select>
+                <label>📅 Mês:</label><input type="month" id="filterMonth">
+                <label>👤 Cliente:</label><select id="filterClient"><option value="">Todos</option></select>
                 <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Limpar Filtros</button>
             </div>
             <div class="table-wrapper">
-                <div class="table-header">
-                    <h3>📋 Pedidos</h3>
-                    <div>
-                        <span id="ordersSummary" style="font-size:0.85rem;color:var(--text-light);margin-right:16px;"></span>
-                        <input type="text" class="search-box" placeholder="🔍 Buscar..." oninput="renderOrders()" id="orderSearch" style="width:200px">
-                    </div>
-                </div>
-                <table>
-                    <thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Observação</th><th>Ações</th></tr></thead>
-                    <tbody id="ordersBody"></tbody>
-                </table>
+                <div class="table-header"><h3>📋 Pedidos</h3><div><span id="ordersSummary" style="font-size:0.85rem;color:var(--text-light);margin-right:16px;"></span><input type="text" class="search-box" placeholder="🔍 Buscar..." id="orderSearch" style="width:200px"></div></div>
+                <table><thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="ordersBody"></tbody></table>
             </div>
         </div>
-
+        <!-- RECORRENCIA -->
         <div id="tab-recorrencia" class="tab-content">
-            <div class="filter-bar">
-                <label>📅 Mês de referência:</label>
-                <input type="month" id="recurrenceMonth" onchange="renderRecurrence()">
-            </div>
+            <div class="filter-bar"><label>📅 Mês de referência:</label><input type="month" id="recurrenceMonth"></div>
             <div class="stats-grid" id="recurrenceStats"></div>
             <div class="table-wrapper">
                 <div class="table-header"><h3>🔄 Status de Recorrência dos Clientes</h3></div>
-                <table>
-                    <thead><tr><th>Cliente</th><th>Recorrência</th><th>Último Pedido</th><th>Status no Período</th><th>Total no Mês (R$)</th><th>Ação</th></tr></thead>
-                    <tbody id="recurrenceBody"></tbody>
-                </table>
+                <table><thead><tr><th>Cliente</th><th>Recorrência</th><th>Último Pedido</th><th>Status</th><th>Total (R$)</th><th>Ação</th></tr></thead><tbody id="recurrenceBody"></tbody></table>
             </div>
         </div>
-
+        <!-- RETENCAO -->
         <div id="tab-retencao" class="tab-content">
             <div id="retentionAlertBox"></div>
             <div class="stats-grid" id="retentionStats"></div>
             <div id="retentionList"></div>
         </div>
     </div>
-
-    <div class="modal-overlay" id="clientModal">
-        <div class="modal">
-            <h2><span id="modalClientName">Cliente</span><button class="modal-close" onclick="closeModal()">&times;</button></h2>
-            <div id="modalClientInfo" style="margin-bottom:16px;font-size:0.9rem;color:var(--text-light);"></div>
-            <h3 style="font-size:1rem;margin-bottom:12px;color:var(--accent);">Histórico de Pedidos</h3>
-            <div id="modalTimeline" class="client-timeline"></div>
-        </div>
-    </div>
-
+    <!-- MODAL HISTORICO -->
+    <div class="modal-overlay" id="clientModal"><div class="modal"><h2><span id="modalClientName">Cliente</span><button class="modal-close" onclick="closeModal()">&times;</button></h2><div id="modalClientInfo" style="margin-bottom:16px;font-size:0.9rem;color:var(--text-light);"></div><h3 style="font-size:1rem;margin-bottom:12px;color:var(--accent);">Histórico de Pedidos</h3><div id="modalTimeline" class="client-timeline"></div></div></div>
+    <!-- MODAL EDITAR CLIENTE -->
+    <div class="modal-overlay" id="editClientModal"><div class="modal"><h2>✏️ Editar Cliente<button class="modal-close" onclick="closeEditClient()">&times;</button></h2>
+        <input type="hidden" id="editClientId">
+        <div class="form-row"><div class="form-group"><label>Nome</label><input type="text" id="editClientName"></div><div class="form-group"><label>Telefone</label><input type="text" id="editClientPhone"></div><div class="form-group"><label>Recorrência</label><select id="editClientRecurrence"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso</option></select></div></div>
+        <div style="margin-top:16px;display:flex;gap:10px;"><button class="btn btn-primary" onclick="saveEditClient()">💾 Salvar</button><button class="btn btn-secondary" onclick="closeEditClient()">Cancelar</button></div>
+    </div></div>
+    <!-- MODAL EDITAR PEDIDO -->
+    <div class="modal-overlay" id="editOrderModal"><div class="modal"><h2>✏️ Editar Pedido<button class="modal-close" onclick="closeEditOrder()">&times;</button></h2>
+        <input type="hidden" id="editOrderId">
+        <div class="form-row"><div class="form-group"><label>Cliente</label><input type="text" id="editOrderClient" readonly style="background:#f0f0f0;"></div><div class="form-group"><label>Data</label><input type="date" id="editOrderDate"></div></div>
+        <div class="form-row"><div class="form-group"><label>Valor (R$)</label><input type="number" id="editOrderValue" step="0.01" min="0"></div><div class="form-group"><label>Observação</label><textarea id="editOrderObs" rows="2"></textarea></div></div>
+        <div style="margin-top:16px;display:flex;gap:10px;"><button class="btn btn-primary" onclick="saveEditOrder()">💾 Salvar</button><button class="btn btn-secondary" onclick="closeEditOrder()">Cancelar</button></div>
+    </div></div>
     <div class="toast" id="toast"></div>
+<script>
+const API = '/api';
+let _clients = [], _orders = [];
 
-    <script>
-        // ======================== API LAYER ========================
-        const API = '/api';
+// ==================== API ====================
+async function api(path, opts = {}) {
+    const res = await fetch(API + path, { headers:{'Content-Type':'application/json'}, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+    if (!res.ok) { const e = await res.json().catch(()=>({error:res.statusText})); throw new Error(e.error||'Erro no servidor'); }
+    return res.json();
+}
+async function refreshData() { [_clients, _orders] = await Promise.all([api('/clients'), api('/orders')]); }
 
-        // In-memory cache refreshed on every mutation
-        let _clients = [];
-        let _orders = [];
+// ==================== TOAST / LOADING ====================
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+function showLoading() { document.getElementById('loadingOverlay').classList.add('active'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
 
-        async function api(path, opts = {}) {
-            const res = await fetch(API + path, {
-                headers: { 'Content-Type': 'application/json' },
-                ...opts,
-                body: opts.body ? JSON.stringify(opts.body) : undefined
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({ error: res.statusText }));
-                throw new Error(err.error || 'Erro no servidor');
+// ==================== TABS ====================
+function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+    document.getElementById('tab-'+tab).classList.add('active');
+    document.querySelector(`.nav-tab[data-tab="${tab}"]`).classList.add('active');
+    renderCurrentTab(tab);
+}
+function renderCurrentTab(tab) {
+    if(tab==='dashboard') renderDashboard();
+    if(tab==='clientes') renderClients();
+    if(tab==='pedidos'){populateFilterClient();renderOrders();}
+    if(tab==='recorrencia') renderRecurrence();
+    if(tab==='retencao') renderRetention();
+    if(tab==='novo-pedido') populateClientDatalist();
+}
+function refreshAllViews() {
+    const activeTab = document.querySelector('.nav-tab.active');
+    if(activeTab) renderCurrentTab(activeTab.dataset.tab);
+    updateRetentionBadge();
+}
+
+// ==================== CLIENT CRUD ====================
+async function saveClient(e) {
+    e.preventDefault();
+    const name=document.getElementById('clientName').value.trim();
+    const phone=document.getElementById('clientPhone').value.trim();
+    const recurrence=document.getElementById('clientRecurrence').value;
+    if(!name){showToast('⚠️ Nome é obrigatório');return;}
+    try {
+        await api('/clients',{method:'POST',body:{name,phone,recurrence}});
+        await refreshData();
+        document.getElementById('clientForm').reset();
+        showToast('✅ Cliente cadastrado!');
+        refreshAllViews();
+    } catch(e){showToast('⚠️ '+e.message);}
+}
+async function deleteClient(id) {
+    if(!confirm('Excluir este cliente e todos os seus pedidos?')) return;
+    try { await api('/clients/'+id,{method:'DELETE'}); await refreshData(); showToast('🗑️ Cliente excluído!'); refreshAllViews(); }
+    catch(e){showToast('⚠️ '+e.message);}
+}
+function openEditClient(id) {
+    const c=_clients.find(x=>x.id===id); if(!c) return;
+    document.getElementById('editClientId').value=c.id;
+    document.getElementById('editClientName').value=c.name;
+    document.getElementById('editClientPhone').value=c.phone||'';
+    document.getElementById('editClientRecurrence').value=c.recurrence||'mensal';
+    document.getElementById('editClientModal').classList.add('active');
+}
+function closeEditClient(){document.getElementById('editClientModal').classList.remove('active');}
+async function saveEditClient() {
+    const id=document.getElementById('editClientId').value;
+    const name=document.getElementById('editClientName').value.trim();
+    const phone=document.getElementById('editClientPhone').value.trim();
+    const recurrence=document.getElementById('editClientRecurrence').value;
+    if(!name){showToast('⚠️ Nome é obrigatório');return;}
+    try { await api('/clients/'+id,{method:'PUT',body:{name,phone,recurrence}}); await refreshData(); closeEditClient(); showToast('✅ Cliente atualizado!'); refreshAllViews(); }
+    catch(e){showToast('⚠️ '+e.message);}
+}
+function renderClients(search) {
+    search = search || (document.getElementById('clientSearch')?.value||'');
+    const tbody=document.getElementById('clientsBody');
+    let filtered=_clients;
+    if(search) filtered=_clients.filter(c=>c.name.toLowerCase().includes(search.toLowerCase())||((c.phone||'').includes(search)));
+    if(!filtered.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div>Nenhum cliente encontrado</div></td></tr>';return;}
+    tbody.innerHTML=filtered.map(c=>{
+        const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase());
+        const last=[...co].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+        const status=getRecurrenceStatus(c,co);
+        return `<tr>
+            <td><strong style="cursor:pointer;color:var(--primary-dark)" onclick="openClientModal('${c.id}')">${c.name}</strong></td>
+            <td>${c.phone||'-'}</td>
+            <td><span class="badge badge-info">${c.recurrence}</span></td>
+            <td>${co.length}</td>
+            <td>${last?formatDate(last.date):'-'}</td>
+            <td>${status}</td>
+            <td class="actions-cell">
+                <button class="btn btn-warning btn-sm" onclick="openEditClient('${c.id}')">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">🗑️</button>
+                ${c.phone?`<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}','${c.name}')">💬</button>`:''}
+            </td></tr>`;
+    }).join('');
+}
+function populateClientDatalist(){document.getElementById('clientList').innerHTML=_clients.map(c=>`<option value="${c.name}">`).join('');}
+
+// ==================== AUTO-FILL PHONE ON CLIENT SELECT ====================
+function setupAutoFill() {
+    const clientInput=document.getElementById('orderClient');
+    clientInput.addEventListener('change',function(){
+        const c=_clients.find(x=>x.name.toLowerCase()===this.value.trim().toLowerCase());
+        if(c){
+            if(c.phone) document.getElementById('orderPhone').value=c.phone;
+            document.getElementById('orderRecurrence').value=c.recurrence||'mensal';
+        }
+    });
+}
+
+// ==================== ORDER CRUD ====================
+async function saveOrder(e) {
+    e.preventDefault();
+    const client_name=document.getElementById('orderClient').value.trim();
+    const phone=document.getElementById('orderPhone').value.trim();
+    const date=document.getElementById('orderDate').value;
+    const value=parseFloat(document.getElementById('orderValue').value);
+    const recurrence=document.getElementById('orderRecurrence').value;
+    const obs=document.getElementById('orderObs').value.trim();
+    if(!client_name){showToast('⚠️ Nome do cliente é obrigatório');return;}
+    if(!date){showToast('⚠️ Data é obrigatória');return;}
+    if(isNaN(value)||value<0){showToast('⚠️ Valor inválido');return;}
+    try {
+        await api('/orders',{method:'POST',body:{client_name,date,value,obs,phone,recurrence}});
+        await refreshData();
+        document.getElementById('orderForm').reset();
+        document.getElementById('orderDate').value=new Date().toISOString().split('T')[0];
+        showToast('✅ Pedido registrado!');
+        refreshAllViews();
+    } catch(e){showToast('⚠️ '+e.message);}
+}
+async function deleteOrder(id) {
+    if(!confirm('Excluir este pedido?')) return;
+    try { await api('/orders/'+id,{method:'DELETE'}); await refreshData(); showToast('🗑️ Pedido excluído!'); refreshAllViews(); }
+    catch(e){showToast('⚠️ '+e.message);}
+}
+function openEditOrder(id) {
+    const o=_orders.find(x=>x.id===id); if(!o) return;
+    document.getElementById('editOrderId').value=o.id;
+    document.getElementById('editOrderClient').value=o.client_name;
+    document.getElementById('editOrderDate').value=o.date;
+    document.getElementById('editOrderValue').value=o.value;
+    document.getElementById('editOrderObs').value=o.obs||'';
+    document.getElementById('editOrderModal').classList.add('active');
+}
+function closeEditOrder(){document.getElementById('editOrderModal').classList.remove('active');}
+async function saveEditOrder() {
+    const id=document.getElementById('editOrderId').value;
+    const date=document.getElementById('editOrderDate').value;
+    const value=parseFloat(document.getElementById('editOrderValue').value);
+    const obs=document.getElementById('editOrderObs').value.trim();
+    if(!date){showToast('⚠️ Data obrigatória');return;}
+    if(isNaN(value)){showToast('⚠️ Valor inválido');return;}
+    try {
+        await api('/orders/'+id,{method:'PUT',body:{date,value,obs}});
+        await refreshData(); closeEditOrder(); showToast('✅ Pedido atualizado!'); refreshAllViews();
+    } catch(e){showToast('⚠️ '+e.message);}
+}
+function renderOrders() {
+    const tbody=document.getElementById('ordersBody');
+    const mf=document.getElementById('filterMonth').value;
+    const cf=document.getElementById('filterClient').value;
+    const search=(document.getElementById('orderSearch')?.value||'').toLowerCase();
+    let filtered=[..._orders];
+    if(mf) filtered=filtered.filter(o=>o.date&&o.date.startsWith(mf));
+    if(cf) filtered=filtered.filter(o=>o.client_name.toLowerCase()===cf.toLowerCase());
+    if(search) filtered=filtered.filter(o=>o.client_name.toLowerCase().includes(search)||(o.obs&&o.obs.toLowerCase().includes(search)));
+    filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const total=filtered.reduce((s,o)=>s+(o.value||0),0);
+    document.getElementById('ordersSummary').textContent=`${filtered.length} pedido(s) | Total: R$ ${total.toFixed(2)}`;
+    if(!filtered.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="icon">📋</div>Nenhum pedido encontrado</div></td></tr>';return;}
+    tbody.innerHTML=filtered.map(o=>`<tr>
+        <td><strong>${o.client_name}</strong></td>
+        <td>${formatDate(o.date)}</td>
+        <td><strong>R$ ${(o.value||0).toFixed(2)}</strong></td>
+        <td>${o.obs||'-'}</td>
+        <td class="actions-cell">
+            <button class="btn btn-warning btn-sm" onclick="openEditOrder('${o.id}')">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')">🗑️</button>
+        </td></tr>`).join('');
+}
+function populateFilterClient(){
+    const sel=document.getElementById('filterClient');
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Todos</option>'+_clients.map(c=>`<option value="${c.name}" ${c.name===cur?'selected':''}>${c.name}</option>`).join('');
+}
+function clearFilters(){document.getElementById('filterMonth').value='';document.getElementById('filterClient').value='';document.getElementById('orderSearch').value='';renderOrders();}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+    const now=new Date();
+    const cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const mo=_orders.filter(o=>o.date&&o.date.startsWith(cm));
+    const mt=mo.reduce((s,o)=>s+(o.value||0),0);
+    const ta=_orders.reduce((s,o)=>s+(o.value||0),0);
+    const rc=_clients.filter(c=>c.recurrence!=='avulso');
+    const pc=rc.filter(c=>!mo.find(o=>o.client_name.toLowerCase()===c.name.toLowerCase()));
+    const ret=getRetentionClients().length;
+    document.getElementById('statsGrid').innerHTML=`
+        <div class="stat-card"><div class="stat-label">Pedidos este mês</div><div class="stat-value">${mo.length}</div><div class="stat-sub">${getMonthName(now.getMonth())} ${now.getFullYear()}</div></div>
+        <div class="stat-card"><div class="stat-label">Faturamento do mês</div><div class="stat-value">R$ ${mt.toFixed(2)}</div><div class="stat-sub">Média: R$ ${mo.length?(mt/mo.length).toFixed(2):'0.00'} por pedido</div></div>
+        <div class="stat-card accent"><div class="stat-label">Total de clientes</div><div class="stat-value">${_clients.length}</div><div class="stat-sub">${rc.length} com recorrência</div></div>
+        <div class="stat-card ${pc.length>0?'warning':''}"><div class="stat-label">⚠️ Clientes pendentes</div><div class="stat-value">${pc.length}</div><div class="stat-sub">Não pediram este mês</div></div>
+        <div class="stat-card ${ret>0?'danger':''}" style="cursor:pointer" onclick="switchTab('retencao')"><div class="stat-label">🚨 Retenção</div><div class="stat-value">${ret}</div><div class="stat-sub">${ret>0?'Clientes passaram do prazo!':'Todos em dia ✅'}</div></div>
+        <div class="stat-card danger"><div class="stat-label">Faturamento total</div><div class="stat-value">R$ ${ta.toFixed(2)}</div><div class="stat-sub">${_orders.length} pedidos no total</div></div>`;
+    updateRetentionBadge();
+    const recent=[..._orders].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+    const tbody=document.getElementById('recentOrdersBody');
+    if(!recent.length){tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="icon">📦</div>Nenhum pedido ainda.<br>Comece adicionando um pedido!</div></td></tr>';return;}
+    tbody.innerHTML=recent.map(o=>`<tr><td><strong>${o.client_name}</strong></td><td>${formatDate(o.date)}</td><td><strong>R$ ${(o.value||0).toFixed(2)}</strong></td><td>${o.obs||'-'}</td></tr>`).join('');
+}
+
+// ==================== RECURRENCE ====================
+function renderRecurrence() {
+    const mi=document.getElementById('recurrenceMonth');
+    if(!mi.value){const n=new Date();mi.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
+    const rm=mi.value;
+    const rc=_clients.filter(c=>c.recurrence!=='avulso');
+    let pediu=0,naoPediu=0;
+    const rows=rc.map(c=>{
+        const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase());
+        const mo=co.filter(o=>o.date&&o.date.startsWith(rm));
+        const last=[...co].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+        const mt=mo.reduce((s,o)=>s+(o.value||0),0);
+        let sl,sc;
+        const [y,m]=rm.split('-').map(Number);
+        if(mo.length>0){sl='✅ Pediu';sc='badge-success';pediu++;}
+        else if(isWithinRecurrence(c.recurrence,last,y,m)){sl='⏳ Dentro da recorrência';sc='badge-warning';pediu++;}
+        else{sl='❌ Não pediu';sc='badge-danger';naoPediu++;}
+        return `<tr>
+            <td><strong style="cursor:pointer;color:var(--primary-dark)" onclick="openClientModal('${c.id}')">${c.name}</strong></td>
+            <td><span class="badge badge-info">${c.recurrence}</span></td>
+            <td>${last?formatDate(last.date):'Nunca'}</td>
+            <td><span class="badge ${sc}">${sl}</span></td>
+            <td><strong>R$ ${mt.toFixed(2)}</strong></td>
+            <td>${mo.length===0&&c.phone?`<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}','${c.name}')">💬 Lembrar</button>`:'-'}</td></tr>`;
+    });
+    document.getElementById('recurrenceStats').innerHTML=`
+        <div class="stat-card"><div class="stat-label">Total c/ Recorrência</div><div class="stat-value">${rc.length}</div></div>
+        <div class="stat-card"><div class="stat-label">✅ Em dia</div><div class="stat-value">${pediu}</div></div>
+        <div class="stat-card warning"><div class="stat-label">❌ Pendentes</div><div class="stat-value">${naoPediu}</div></div>`;
+    document.getElementById('recurrenceBody').innerHTML=rows.length?rows.join(''):'<tr><td colspan="6"><div class="empty-state"><div class="icon">🔄</div>Nenhum cliente com recorrência.</div></td></tr>';
+}
+function isWithinRecurrence(rec,lastOrder,y,m){
+    if(!lastOrder)return false;
+    const last=new Date(lastOrder.date);
+    const ref=new Date(y,m-1,1);
+    const dm=(ref.getFullYear()-last.getFullYear())*12+(ref.getMonth()-last.getMonth());
+    switch(rec){case'semanal':return dm<=0;case'quinzenal':return dm<=0;case'mensal':return dm<=1;case'bimestral':return dm<=2;case'trimestral':return dm<=3;default:return false;}
+}
+function getRecurrenceStatus(client,orders){
+    const now=new Date();
+    const cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const mo=orders.filter(o=>o.date&&o.date.startsWith(cm));
+    if(client.recurrence==='avulso')return '<span class="badge badge-info">Avulso</span>';
+    if(mo.length>0)return '<div class="recurrence-status"><span class="dot dot-green"></span> Em dia</div>';
+    const last=[...orders].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    if(isWithinRecurrence(client.recurrence,last,now.getFullYear(),now.getMonth()+1))return '<div class="recurrence-status"><span class="dot dot-yellow"></span> Dentro da recorrência</div>';
+    return '<div class="recurrence-status"><span class="dot dot-red"></span> Pendente</div>';
+}
+
+// ==================== RETENTION ====================
+function getRecurrenceDays(r){switch(r){case'semanal':return 7;case'quinzenal':return 15;case'mensal':return 30;case'bimestral':return 60;case'trimestral':return 90;default:return 0;}}
+function getRetentionClients(){
+    const now=new Date();now.setHours(0,0,0,0);
+    const list=[];
+    _clients.forEach(c=>{
+        if(c.recurrence==='avulso')return;
+        const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase()).sort((a,b)=>new Date(b.date)-new Date(a.date));
+        const last=co[0];
+        const rd=getRecurrenceDays(c.recurrence);if(!rd)return;
+        let daysOverdue=0,lastDate=null;
+        if(!last){
+            const cr=new Date(c.created_at);cr.setHours(0,0,0,0);
+            const ds=Math.floor((now-cr)/(86400000));
+            if(ds>rd)daysOverdue=ds-rd;else return;
+        }else{
+            lastDate=new Date(last.date);lastDate.setHours(0,0,0,0);
+            const ds=Math.floor((now-lastDate)/(86400000));
+            if(ds>rd)daysOverdue=ds-rd;else return;
+        }
+        let urg,urgL;
+        if(daysOverdue>rd){urg='critical';urgL='🔴 Crítico';}
+        else if(daysOverdue>Math.floor(rd/2)){urg='high';urgL='🟠 Alto';}
+        else{urg='medium';urgL='🟡 Médio';}
+        list.push({client:c,lastOrder:last,lastDate,daysOverdue,rd,urg,urgL,totalOrders:co.length,totalSpent:co.reduce((s,o)=>s+(o.value||0),0)});
+    });
+    list.sort((a,b)=>{const u={critical:0,high:1,medium:2};return u[a.urg]!==u[b.urg]?u[a.urg]-u[b.urg]:b.daysOverdue-a.daysOverdue;});
+    return list;
+}
+function renderRetention(){
+    const list=getRetentionClients();
+    const ab=document.getElementById('retentionAlertBox');
+    const se=document.getElementById('retentionStats');
+    const le=document.getElementById('retentionList');
+    const cr=list.filter(r=>r.urg==='critical').length;
+    const hi=list.filter(r=>r.urg==='high').length;
+    const me=list.filter(r=>r.urg==='medium').length;
+    const tl=list.reduce((s,r)=>s+r.totalSpent,0);
+    ab.innerHTML=list.length?`<div class="retention-alert"><div class="alert-icon">🚨</div><div class="alert-text"><h3>${list.length} cliente(s) passaram do prazo!</h3><p>Entre em contato para não perdê-los.</p></div></div>`:'';
+    se.innerHTML=`
+        <div class="stat-card danger"><div class="stat-label">🔴 Crítico</div><div class="stat-value">${cr}</div><div class="stat-sub">Atraso > recorrência</div></div>
+        <div class="stat-card warning"><div class="stat-label">🟠 Alto</div><div class="stat-value">${hi}</div><div class="stat-sub">Atraso significativo</div></div>
+        <div class="stat-card"><div class="stat-label">🟡 Médio</div><div class="stat-value">${me}</div><div class="stat-sub">Passou do prazo recente</div></div>
+        <div class="stat-card accent"><div class="stat-label">💰 Faturamento em Risco</div><div class="stat-value">R$ ${tl.toFixed(2)}</div><div class="stat-sub">Total desses clientes</div></div>`;
+    if(!list.length){le.innerHTML='<div class="retention-empty"><div class="icon">🎉</div><h3>Tudo certo! Nenhum cliente atrasado.</h3><p>Todos em dia com seus pedidos.</p></div>';return;}
+    le.innerHTML=list.map(r=>{
+        const c=r.client;
+        const pct=Math.min((r.daysOverdue/r.rd)*100,100);
+        const bc=r.urg==='critical'?'var(--danger)':r.urg==='high'?'var(--warning)':'#ffb300';
+        return `<div class="retention-card urgency-${r.urg}">
+            <div class="days-overdue days-${r.urg}"><div class="days-number">${r.daysOverdue}</div><div class="days-label">dias de<br>atraso</div></div>
+            <div class="client-info">
+                <div class="client-name" onclick="openClientModal('${c.id}')">${c.name}</div>
+                <div class="client-meta"><span>📱 ${c.phone||'Sem telefone'}</span><span>🔄 ${c.recurrence} (${r.rd} dias)</span><span>📦 ${r.totalOrders} pedido(s)</span><span>💰 R$ ${r.totalSpent.toFixed(2)}</span></div>
+                <div class="client-meta"><span>📅 Último: ${r.lastDate?formatDate(r.lastOrder.date):'Nunca pediu'}</span><span>${r.urgL}</span></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;background:${bc}"></div></div>
+            </div>
+            <div class="card-actions">${c.phone?`<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}','${c.name}')">💬 WhatsApp</button>`:''}<button class="btn btn-secondary btn-sm" onclick="openClientModal('${c.id}')">📋 Histórico</button></div>
+        </div>`;
+    }).join('');
+}
+function updateRetentionBadge(){
+    const n=getRetentionClients().length;
+    const btn=document.getElementById('navRetencao');
+    const ex=btn.querySelector('.badge-count');if(ex)ex.remove();
+    if(n>0){const b=document.createElement('span');b.className='badge-count';b.textContent=n;btn.appendChild(b);}
+}
+
+// ==================== CLIENT MODAL (HISTORICO) ====================
+function openClientModal(id){
+    const c=_clients.find(x=>x.id===id);if(!c)return;
+    document.getElementById('modalClientName').textContent='👤 '+c.name;
+    document.getElementById('modalClientInfo').innerHTML=`📱 <strong>Telefone:</strong> ${c.phone||'Não informado'} &nbsp;|&nbsp; 🔄 <strong>Recorrência:</strong> ${c.recurrence} &nbsp;|&nbsp; 📅 <strong>Desde:</strong> ${formatDate((c.created_at||'').split('T')[0])}`;
+    const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase()).sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const tl=document.getElementById('modalTimeline');
+    if(!co.length){tl.innerHTML='<div class="empty-state">Nenhum pedido registrado.</div>';}
+    else{
+        const tot=co.reduce((s,o)=>s+(o.value||0),0);
+        tl.innerHTML=`<div style="margin-bottom:16px;padding:12px;background:#e8f5e9;border-radius:8px;font-weight:600;">💰 Total: R$ ${tot.toFixed(2)} em ${co.length} pedido(s)</div>`+
+            co.map(o=>`<div class="timeline-item"><div class="timeline-date">${formatDate(o.date)}</div><div class="timeline-value">R$ ${(o.value||0).toFixed(2)}</div>${o.obs?`<div class="timeline-obs">📝 ${o.obs}</div>`:''}</div>`).join('');
+    }
+    document.getElementById('clientModal').classList.add('active');
+}
+function closeModal(){document.getElementById('clientModal').classList.remove('active');}
+
+// ==================== WHATSAPP ====================
+function sendWhatsApp(phone,name){
+    const clean=phone.replace(/\D/g,'');
+    const msg=encodeURIComponent(`Olá ${name}! 😊 Passando para lembrar que estamos à disposição para seu pedido. Pode nos chamar! 💚`);
+    window.open(`https://wa.me/55${clean}?text=${msg}`,'_blank');
+}
+
+// ==================== EXPORT/IMPORT ====================
+async function exportData(){
+    try{const d=await api('/export');const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`pedidos-backup-${new Date().toISOString().split('T')[0]}.json`;a.click();showToast('📥 Dados exportados!');}
+    catch(e){showToast('⚠️ '+e.message);}
+}
+async function importData(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=async function(ev){
+        try{
+            const d=JSON.parse(ev.target.result);
+            const clients=(d.clients||[]).map(c=>({id:c.id,name:c.name,phone:c.phone||'',recurrence:c.recurrence||'mensal',created_at:c.created_at||c.createdAt||new Date().toISOString()}));
+            const orders=(d.orders||[]).map(o=>({id:o.id,client_name:o.client_name||o.clientName,date:o.date,value:o.value,obs:o.obs||'',created_at:o.created_at||o.createdAt||new Date().toISOString()}));
+            if(confirm(`Importar ${clients.length} clientes e ${orders.length} pedidos? Isso substituirá os dados atuais.`)){
+                await api('/import',{method:'POST',body:{clients,orders}});
+                await refreshData();showToast('✅ Dados importados!');refreshAllViews();
             }
-            return res.json();
-        }
+        }catch(e){showToast('⚠️ '+e.message);}
+    };
+    reader.readAsText(file);e.target.value='';
+}
 
-        async function refreshData() {
-            [_clients, _orders] = await Promise.all([
-                api('/clients'),
-                api('/orders')
-            ]);
-        }
+// ==================== HELPERS ====================
+function formatDate(ds){if(!ds||ds==='-')return '-';const[y,m,d]=(ds||'').split('-');return d&&m&&y?`${d}/${m}/${y}`:ds;}
+function getMonthName(i){return['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][i];}
 
-        // ======================== TOAST ========================
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
+// ==================== PHONE MASK ====================
+function phoneMask(input){
+    input.addEventListener('input',function(){
+        let v=this.value.replace(/\D/g,'');
+        if(v.length>11)v=v.substr(0,11);
+        if(v.length>6)this.value=`(${v.substr(0,2)}) ${v.substr(2,5)}-${v.substr(7)}`;
+        else if(v.length>2)this.value=`(${v.substr(0,2)}) ${v.substr(2)}`;
+        else if(v.length>0)this.value=`(${v}`;
+    });
+}
 
-        // ======================== LOADING ========================
-        function showLoading() { document.getElementById('loadingOverlay').classList.add('active'); }
-        function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', async ()=>{
+    document.getElementById('orderDate').value=new Date().toISOString().split('T')[0];
+    const now=new Date();
+    document.getElementById('recurrenceMonth').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
 
-        // ======================== TABS ========================
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-            event.target.classList.add('active');
+    // Tab navigation
+    document.getElementById('navTabs').addEventListener('click',function(e){
+        const btn=e.target.closest('.nav-tab');if(!btn)return;
+        switchTab(btn.dataset.tab);
+    });
 
-            if (tab === 'dashboard') renderDashboard();
-            if (tab === 'clientes') renderClients();
-            if (tab === 'pedidos') { populateFilterClient(); renderOrders(); }
-            if (tab === 'recorrencia') renderRecurrence();
-            if (tab === 'retencao') renderRetention();
-            if (tab === 'novo-pedido') populateClientDatalist();
-        }
+    // Forms
+    document.getElementById('orderForm').addEventListener('submit', saveOrder);
+    document.getElementById('clientForm').addEventListener('submit', saveClient);
 
-        // ======================== CLIENT ========================
-        async function saveClient(e) {
-            e.preventDefault();
-            const name = document.getElementById('clientName').value.trim();
-            const phone = document.getElementById('clientPhone').value.trim();
-            const recurrence = document.getElementById('clientRecurrence').value;
+    // Search inputs
+    document.getElementById('clientSearch').addEventListener('input',function(){renderClients(this.value);});
+    document.getElementById('orderSearch').addEventListener('input',renderOrders);
+    document.getElementById('filterMonth').addEventListener('change',renderOrders);
+    document.getElementById('filterClient').addEventListener('change',renderOrders);
+    document.getElementById('recurrenceMonth').addEventListener('change',renderRecurrence);
 
-            try {
-                await api('/clients', { method: 'POST', body: { name, phone, recurrence } });
-                await refreshData();
-                document.getElementById('clientForm').reset();
-                showToast('✅ Cliente cadastrado com sucesso!');
-            } catch (err) {
-                showToast('⚠️ ' + err.message);
-            }
-        }
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('active');});});
 
-        async function deleteClient(id) {
-            if (!confirm('Deseja realmente excluir este cliente e todos os seus pedidos?')) return;
-            try {
-                await api('/clients/' + id, { method: 'DELETE' });
-                await refreshData();
-                renderClients();
-                showToast('🗑️ Cliente excluído!');
-            } catch (err) {
-                showToast('⚠️ ' + err.message);
-            }
-        }
+    // Phone masks
+    phoneMask(document.getElementById('orderPhone'));
+    phoneMask(document.getElementById('clientPhone'));
+    phoneMask(document.getElementById('editClientPhone'));
 
-        function renderClients(search = '') {
-            const tbody = document.getElementById('clientsBody');
-            let filtered = _clients;
-            if (search) filtered = _clients.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+    // Auto-fill phone when selecting existing client
+    setupAutoFill();
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div>Nenhum cliente encontrado</div></td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(c => {
-                const clientOrders = _orders.filter(o => o.client_name.toLowerCase() === c.name.toLowerCase());
-                const totalOrders = clientOrders.length;
-                const lastOrder = clientOrders.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                const status = getRecurrenceStatus(c, clientOrders);
-
-                return `<tr>
-                    <td><strong style="cursor:pointer;color:var(--primary-dark)" onclick="openClientModal('${c.id}')">${c.name}</strong></td>
-                    <td>${c.phone || '-'}</td>
-                    <td><span class="badge badge-info">${c.recurrence}</span></td>
-                    <td>${totalOrders}</td>
-                    <td>${lastOrder ? formatDate(lastOrder.date) : '-'}</td>
-                    <td>${status}</td>
-                    <td class="actions-cell">
-                        <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">🗑️</button>
-                    </td>
-                </tr>`;
-            }).join('');
-        }
-
-        function populateClientDatalist() {
-            document.getElementById('clientList').innerHTML = _clients.map(c => `<option value="${c.name}">`).join('');
-        }
-
-        // ======================== ORDERS ========================
-        async function saveOrder(e) {
-            e.preventDefault();
-            const client_name = document.getElementById('orderClient').value.trim();
-            const phone = document.getElementById('orderPhone').value.trim();
-            const date = document.getElementById('orderDate').value;
-            const value = parseFloat(document.getElementById('orderValue').value);
-            const recurrence = document.getElementById('orderRecurrence').value;
-            const obs = document.getElementById('orderObs').value.trim();
-
-            try {
-                await api('/orders', { method: 'POST', body: { client_name, date, value, obs, phone, recurrence } });
-                await refreshData();
-                document.getElementById('orderForm').reset();
-                document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-                showToast('✅ Pedido registrado com sucesso!');
-            } catch (err) {
-                showToast('⚠️ ' + err.message);
-            }
-        }
-
-        async function deleteOrder(id) {
-            if (!confirm('Excluir este pedido?')) return;
-            try {
-                await api('/orders/' + id, { method: 'DELETE' });
-                await refreshData();
-                renderOrders();
-                showToast('🗑️ Pedido excluído!');
-            } catch (err) {
-                showToast('⚠️ ' + err.message);
-            }
-        }
-
-        function renderOrders() {
-            const tbody = document.getElementById('ordersBody');
-            const monthFilter = document.getElementById('filterMonth').value;
-            const clientFilter = document.getElementById('filterClient').value;
-            const search = (document.getElementById('orderSearch')?.value || '').toLowerCase();
-
-            let filtered = [..._orders];
-            if (monthFilter) filtered = filtered.filter(o => o.date.startsWith(monthFilter));
-            if (clientFilter) filtered = filtered.filter(o => o.client_name.toLowerCase() === clientFilter.toLowerCase());
-            if (search) filtered = filtered.filter(o => o.client_name.toLowerCase().includes(search) || (o.obs && o.obs.toLowerCase().includes(search)));
-
-            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
-            const totalValue = filtered.reduce((s, o) => s + o.value, 0);
-            document.getElementById('ordersSummary').textContent = `${filtered.length} pedido(s) | Total: R$ ${totalValue.toFixed(2)}`;
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><div class="icon">📋</div>Nenhum pedido encontrado</div></td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(o => `<tr>
-                <td><strong>${o.client_name}</strong></td>
-                <td>${formatDate(o.date)}</td>
-                <td><strong>R$ ${o.value.toFixed(2)}</strong></td>
-                <td>${o.obs || '-'}</td>
-                <td class="actions-cell">
-                    <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')">🗑️</button>
-                </td>
-            </tr>`).join('');
-        }
-
-        function populateFilterClient() {
-            const sel = document.getElementById('filterClient');
-            const current = sel.value;
-            sel.innerHTML = '<option value="">Todos</option>' + _clients.map(c => `<option value="${c.name}" ${c.name === current ? 'selected' : ''}>${c.name}</option>`).join('');
-        }
-
-        function clearFilters() {
-            document.getElementById('filterMonth').value = '';
-            document.getElementById('filterClient').value = '';
-            document.getElementById('orderSearch').value = '';
-            renderOrders();
-        }
-
-        // ======================== DASHBOARD ========================
-        function renderDashboard() {
-            const now = new Date();
-            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const monthOrders = _orders.filter(o => o.date.startsWith(currentMonth));
-            const monthTotal = monthOrders.reduce((s, o) => s + o.value, 0);
-            const totalAll = _orders.reduce((s, o) => s + o.value, 0);
-            const recurringClients = _clients.filter(c => c.recurrence !== 'avulso');
-            const pendingClients = recurringClients.filter(c => !monthOrders.find(o => o.client_name.toLowerCase() === c.name.toLowerCase()));
-            const retentionCount = getRetentionClients().length;
-
-            document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card"><div class="stat-label">Pedidos este mês</div><div class="stat-value">${monthOrders.length}</div><div class="stat-sub">${getMonthName(now.getMonth())} ${now.getFullYear()}</div></div>
-                <div class="stat-card"><div class="stat-label">Faturamento do mês</div><div class="stat-value">R$ ${monthTotal.toFixed(2)}</div><div class="stat-sub">Média: R$ ${monthOrders.length ? (monthTotal / monthOrders.length).toFixed(2) : '0.00'} por pedido</div></div>
-                <div class="stat-card accent"><div class="stat-label">Total de clientes</div><div class="stat-value">${_clients.length}</div><div class="stat-sub">${recurringClients.length} com recorrência</div></div>
-                <div class="stat-card ${pendingClients.length > 0 ? 'warning' : ''}"><div class="stat-label">⚠️ Clientes pendentes</div><div class="stat-value">${pendingClients.length}</div><div class="stat-sub">Ainda não pediram este mês</div></div>
-                <div class="stat-card ${retentionCount > 0 ? 'danger' : ''}" style="cursor:pointer" onclick="document.getElementById('navRetencao').click()"><div class="stat-label">🚨 Retenção</div><div class="stat-value">${retentionCount}</div><div class="stat-sub">${retentionCount > 0 ? 'Clientes passaram do prazo!' : 'Todos em dia ✅'}</div></div>
-                <div class="stat-card danger"><div class="stat-label">Faturamento total</div><div class="stat-value">R$ ${totalAll.toFixed(2)}</div><div class="stat-sub">${_orders.length} pedidos no total</div></div>
-            `;
-            updateRetentionBadge();
-
-            const recent = [..._orders].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 8);
-            const tbody = document.getElementById('recentOrdersBody');
-            if (recent.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div class="icon">📦</div>Nenhum pedido registrado ainda.<br>Comece adicionando um pedido!</div></td></tr>';
-                return;
-            }
-            tbody.innerHTML = recent.map(o => `<tr><td><strong>${o.client_name}</strong></td><td>${formatDate(o.date)}</td><td><strong>R$ ${o.value.toFixed(2)}</strong></td><td>${o.obs || '-'}</td></tr>`).join('');
-        }
-
-        // ======================== RECURRENCE ========================
-        function renderRecurrence() {
-            const monthInput = document.getElementById('recurrenceMonth');
-            if (!monthInput.value) { const now = new Date(); monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`; }
-            const refMonth = monthInput.value;
-            const [year, month] = refMonth.split('-').map(Number);
-            const recurringClients = _clients.filter(c => c.recurrence !== 'avulso');
-            let pediu = 0, naoPediu = 0;
-
-            const rows = recurringClients.map(c => {
-                const clientOrders = _orders.filter(o => o.client_name.toLowerCase() === c.name.toLowerCase());
-                const monthOrders = clientOrders.filter(o => o.date.startsWith(refMonth));
-                const lastOrder = [...clientOrders].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-                const monthTotal = monthOrders.reduce((s, o) => s + o.value, 0);
-                let statusLabel, statusClass;
-                if (monthOrders.length > 0) { statusLabel = '✅ Pediu'; statusClass = 'badge-success'; pediu++; }
-                else if (isWithinRecurrence(c.recurrence, lastOrder, year, month)) { statusLabel = '⏳ Dentro da recorrência'; statusClass = 'badge-warning'; pediu++; }
-                else { statusLabel = '❌ Não pediu'; statusClass = 'badge-danger'; naoPediu++; }
-
-                return `<tr>
-                    <td><strong style="cursor:pointer;color:var(--primary-dark)" onclick="openClientModal('${c.id}')">${c.name}</strong></td>
-                    <td><span class="badge badge-info">${c.recurrence}</span></td>
-                    <td>${lastOrder ? formatDate(lastOrder.date) : 'Nunca'}</td>
-                    <td><span class="badge ${statusClass}">${statusLabel}</span></td>
-                    <td><strong>R$ ${monthTotal.toFixed(2)}</strong></td>
-                    <td>${monthOrders.length === 0 && c.phone ? `<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}', '${c.name}')">💬 Lembrar</button>` : '-'}</td>
-                </tr>`;
-            });
-
-            document.getElementById('recurrenceStats').innerHTML = `
-                <div class="stat-card"><div class="stat-label">Total c/ Recorrência</div><div class="stat-value">${recurringClients.length}</div></div>
-                <div class="stat-card"><div class="stat-label">✅ Em dia</div><div class="stat-value">${pediu}</div></div>
-                <div class="stat-card warning"><div class="stat-label">❌ Pendentes</div><div class="stat-value">${naoPediu}</div></div>
-            `;
-            const tbody = document.getElementById('recurrenceBody');
-            tbody.innerHTML = rows.length === 0 ? '<tr><td colspan="6"><div class="empty-state"><div class="icon">🔄</div>Nenhum cliente com recorrência cadastrada.</div></td></tr>' : rows.join('');
-        }
-
-        function isWithinRecurrence(recurrence, lastOrder, refYear, refMonth) {
-            if (!lastOrder) return false;
-            const last = new Date(lastOrder.date);
-            const ref = new Date(refYear, refMonth - 1, 1);
-            const diffMonths = (ref.getFullYear() - last.getFullYear()) * 12 + (ref.getMonth() - last.getMonth());
-            switch (recurrence) {
-                case 'semanal': return diffMonths <= 0;
-                case 'quinzenal': return diffMonths <= 0;
-                case 'mensal': return diffMonths <= 1;
-                case 'bimestral': return diffMonths <= 2;
-                case 'trimestral': return diffMonths <= 3;
-                default: return false;
-            }
-        }
-
-        function getRecurrenceStatus(client, clientOrders) {
-            const now = new Date();
-            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            const monthOrders = clientOrders.filter(o => o.date.startsWith(currentMonth));
-            if (client.recurrence === 'avulso') return '<span class="badge badge-info">Avulso</span>';
-            if (monthOrders.length > 0) return '<div class="recurrence-status"><span class="dot dot-green"></span> Em dia</div>';
-            const lastOrder = [...clientOrders].sort((a, b) => new Date(b.date) - new Date(a.date))[0];
-            if (isWithinRecurrence(client.recurrence, lastOrder, now.getFullYear(), now.getMonth() + 1)) return '<div class="recurrence-status"><span class="dot dot-yellow"></span> Dentro da recorrência</div>';
-            return '<div class="recurrence-status"><span class="dot dot-red"></span> Pendente</div>';
-        }
-
-        // ======================== RETENTION ========================
-        function getRecurrenceDays(recurrence) {
-            switch (recurrence) { case 'semanal': return 7; case 'quinzenal': return 15; case 'mensal': return 30; case 'bimestral': return 60; case 'trimestral': return 90; default: return 0; }
-        }
-
-        function getRetentionClients() {
-            const now = new Date(); now.setHours(0, 0, 0, 0);
-            const retentionList = [];
-
-            _clients.forEach(c => {
-                if (c.recurrence === 'avulso') return;
-                const clientOrders = _orders.filter(o => o.client_name.toLowerCase() === c.name.toLowerCase()).sort((a, b) => new Date(b.date) - new Date(a.date));
-                const lastOrder = clientOrders[0];
-                const recurrenceDays = getRecurrenceDays(c.recurrence);
-                if (recurrenceDays === 0) return;
-
-                let daysOverdue = 0, lastOrderDate = null;
-                if (!lastOrder) {
-                    const created = new Date(c.created_at); created.setHours(0, 0, 0, 0);
-                    const daysSinceCreated = Math.floor((now - created) / (1000 * 60 * 60 * 24));
-                    if (daysSinceCreated > recurrenceDays) { daysOverdue = daysSinceCreated - recurrenceDays; } else { return; }
-                } else {
-                    lastOrderDate = new Date(lastOrder.date); lastOrderDate.setHours(0, 0, 0, 0);
-                    const daysSinceLast = Math.floor((now - lastOrderDate) / (1000 * 60 * 60 * 24));
-                    if (daysSinceLast > recurrenceDays) { daysOverdue = daysSinceLast - recurrenceDays; } else { return; }
-                }
-
-                let urgency, urgencyLabel;
-                if (daysOverdue > recurrenceDays) { urgency = 'critical'; urgencyLabel = '🔴 Crítico'; }
-                else if (daysOverdue > Math.floor(recurrenceDays / 2)) { urgency = 'high'; urgencyLabel = '🟠 Alto'; }
-                else { urgency = 'medium'; urgencyLabel = '🟡 Médio'; }
-
-                retentionList.push({ client: c, lastOrder, lastOrderDate, daysOverdue, recurrenceDays, urgency, urgencyLabel, totalOrders: clientOrders.length, totalSpent: clientOrders.reduce((s, o) => s + o.value, 0) });
-            });
-
-            retentionList.sort((a, b) => {
-                const uo = { critical: 0, high: 1, medium: 2 };
-                return uo[a.urgency] !== uo[b.urgency] ? uo[a.urgency] - uo[b.urgency] : b.daysOverdue - a.daysOverdue;
-            });
-            return retentionList;
-        }
-
-        function renderRetention() {
-            const retentionList = getRetentionClients();
-            const alertBox = document.getElementById('retentionAlertBox');
-            const statsEl = document.getElementById('retentionStats');
-            const listEl = document.getElementById('retentionList');
-            const critical = retentionList.filter(r => r.urgency === 'critical').length;
-            const high = retentionList.filter(r => r.urgency === 'high').length;
-            const medium = retentionList.filter(r => r.urgency === 'medium').length;
-            const totalLost = retentionList.reduce((s, r) => s + r.totalSpent, 0);
-
-            alertBox.innerHTML = retentionList.length > 0 ? `<div class="retention-alert"><div class="alert-icon">🚨</div><div class="alert-text"><h3>${retentionList.length} cliente(s) passaram do prazo de recorrência!</h3><p>Esses clientes não fizeram pedido dentro do período esperado. Entre em contato para não perdê-los.</p></div></div>` : '';
-
-            statsEl.innerHTML = `
-                <div class="stat-card danger"><div class="stat-label">🔴 Urgência Crítica</div><div class="stat-value">${critical}</div><div class="stat-sub">Atraso maior que a recorrência</div></div>
-                <div class="stat-card warning"><div class="stat-label">🟠 Urgência Alta</div><div class="stat-value">${high}</div><div class="stat-sub">Atraso significativo</div></div>
-                <div class="stat-card"><div class="stat-label">🟡 Urgência Média</div><div class="stat-value">${medium}</div><div class="stat-sub">Passou do prazo recentemente</div></div>
-                <div class="stat-card accent"><div class="stat-label">💰 Faturamento em Risco</div><div class="stat-value">R$ ${totalLost.toFixed(2)}</div><div class="stat-sub">Total gasto por esses clientes</div></div>
-            `;
-
-            if (retentionList.length === 0) { listEl.innerHTML = `<div class="retention-empty"><div class="icon">🎉</div><h3>Tudo certo! Nenhum cliente atrasado.</h3><p>Todos os clientes com recorrência estão em dia com seus pedidos.</p></div>`; return; }
-
-            listEl.innerHTML = retentionList.map(r => {
-                const c = r.client;
-                const overduePct = Math.min((r.daysOverdue / r.recurrenceDays) * 100, 100);
-                const barColor = r.urgency === 'critical' ? 'var(--danger)' : r.urgency === 'high' ? 'var(--warning)' : '#ffb300';
-                return `<div class="retention-card urgency-${r.urgency}">
-                    <div class="days-overdue days-${r.urgency}"><div class="days-number">${r.daysOverdue}</div><div class="days-label">dias de<br>atraso</div></div>
-                    <div class="client-info">
-                        <div class="client-name" onclick="openClientModal('${c.id}')">${c.name}</div>
-                        <div class="client-meta"><span>📱 ${c.phone || 'Sem telefone'}</span><span>🔄 ${c.recurrence} (a cada ${r.recurrenceDays} dias)</span><span>📦 ${r.totalOrders} pedido(s)</span><span>💰 R$ ${r.totalSpent.toFixed(2)} acumulado</span></div>
-                        <div class="client-meta"><span>📅 Último pedido: ${r.lastOrderDate ? formatDate(r.lastOrder.date) : 'Nunca pediu'}</span><span>${r.urgencyLabel}</span></div>
-                        <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${overduePct}%;background:${barColor}"></div></div>
-                    </div>
-                    <div class="card-actions">${c.phone ? `<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}', '${c.name}')">💬 WhatsApp</button>` : ''}<button class="btn btn-secondary btn-sm" onclick="openClientModal('${c.id}')">📋 Histórico</button></div>
-                </div>`;
-            }).join('');
-        }
-
-        function updateRetentionBadge() {
-            const count = getRetentionClients().length;
-            const navBtn = document.getElementById('navRetencao');
-            const existing = navBtn.querySelector('.badge-count');
-            if (existing) existing.remove();
-            if (count > 0) { const b = document.createElement('span'); b.className = 'badge-count'; b.textContent = count; navBtn.appendChild(b); }
-        }
-
-        // ======================== CLIENT MODAL ========================
-        function openClientModal(clientId) {
-            const client = _clients.find(c => c.id === clientId);
-            if (!client) return;
-
-            document.getElementById('modalClientName').textContent = `👤 ${client.name}`;
-            document.getElementById('modalClientInfo').innerHTML = `📱 <strong>Telefone:</strong> ${client.phone || 'Não informado'} &nbsp;|&nbsp; 🔄 <strong>Recorrência:</strong> ${client.recurrence} &nbsp;|&nbsp; 📅 <strong>Desde:</strong> ${formatDate(client.created_at.split('T')[0])}`;
-
-            const clientOrders = _orders.filter(o => o.client_name.toLowerCase() === client.name.toLowerCase()).sort((a, b) => new Date(b.date) - new Date(a.date));
-            const timeline = document.getElementById('modalTimeline');
-            if (clientOrders.length === 0) { timeline.innerHTML = '<div class="empty-state">Nenhum pedido registrado.</div>'; }
-            else {
-                const total = clientOrders.reduce((s, o) => s + o.value, 0);
-                timeline.innerHTML = `<div style="margin-bottom:16px;padding:12px;background:#e8f5e9;border-radius:8px;font-weight:600;">💰 Total acumulado: R$ ${total.toFixed(2)} em ${clientOrders.length} pedido(s)</div>` +
-                    clientOrders.map(o => `<div class="timeline-item"><div class="timeline-date">${formatDate(o.date)}</div><div class="timeline-value">R$ ${o.value.toFixed(2)}</div>${o.obs ? `<div class="timeline-obs">📝 ${o.obs}</div>` : ''}</div>`).join('');
-            }
-            document.getElementById('clientModal').classList.add('active');
-        }
-
-        function closeModal() { document.getElementById('clientModal').classList.remove('active'); }
-
-        // ======================== WHATSAPP ========================
-        function sendWhatsApp(phone, name) {
-            const cleanPhone = phone.replace(/\D/g, '');
-            const msg = encodeURIComponent(`Olá ${name}! 😊 Tudo bem? Passando para lembrar que estamos à disposição para o seu pedido deste mês. Pode nos chamar quando quiser! 💚`);
-            window.open(`https://wa.me/55${cleanPhone}?text=${msg}`, '_blank');
-        }
-
-        // ======================== EXPORT/IMPORT ========================
-        async function exportData() {
-            try {
-                const data = await api('/export');
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = `pedidos-backup-${new Date().toISOString().split('T')[0]}.json`;
-                a.click();
-                showToast('📥 Dados exportados com sucesso!');
-            } catch (err) { showToast('⚠️ Erro ao exportar: ' + err.message); }
-        }
-
-        function importDataPrompt() { document.getElementById('importFile').click(); }
-
-        async function importData(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(ev) {
-                try {
-                    const data = JSON.parse(ev.target.result);
-                    // Support both old (localStorage) and new (API) formats
-                    const clients = (data.clients || []).map(c => ({
-                        id: c.id,
-                        name: c.name,
-                        phone: c.phone || '',
-                        recurrence: c.recurrence || 'mensal',
-                        created_at: c.created_at || c.createdAt || new Date().toISOString()
-                    }));
-                    const orders = (data.orders || []).map(o => ({
-                        id: o.id,
-                        client_name: o.client_name || o.clientName,
-                        date: o.date,
-                        value: o.value,
-                        obs: o.obs || '',
-                        created_at: o.created_at || o.createdAt || new Date().toISOString()
-                    }));
-
-                    if (confirm(`Importar ${clients.length} clientes e ${orders.length} pedidos? Isso substituirá os dados atuais.`)) {
-                        await api('/import', { method: 'POST', body: { clients, orders } });
-                        await refreshData();
-                        renderDashboard();
-                        showToast('✅ Dados importados com sucesso!');
-                    }
-                } catch (err) { showToast('⚠️ Erro ao importar: ' + err.message); }
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-        }
-
-        // ======================== HELPERS ========================
-        function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            const [y, m, d] = dateStr.split('-');
-            return `${d}/${m}/${y}`;
-        }
-
-        function getMonthName(idx) {
-            return ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][idx];
-        }
-
-        // ======================== INIT ========================
-        document.addEventListener('DOMContentLoaded', async () => {
-            document.getElementById('orderDate').value = new Date().toISOString().split('T')[0];
-            const now = new Date();
-            document.getElementById('recurrenceMonth').value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-            document.getElementById('clientModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
-
-            // Phone mask
-            document.querySelectorAll('#orderPhone, #clientPhone').forEach(input => {
-                input.addEventListener('input', function() {
-                    let v = this.value.replace(/\D/g, '');
-                    if (v.length > 11) v = v.substr(0, 11);
-                    if (v.length > 6) this.value = `(${v.substr(0,2)}) ${v.substr(2,5)}-${v.substr(7)}`;
-                    else if (v.length > 2) this.value = `(${v.substr(0,2)}) ${v.substr(2)}`;
-                    else if (v.length > 0) this.value = `(${v}`;
-                });
-            });
-
-            // Load data from server
-            showLoading();
-            try {
-                await refreshData();
-                renderDashboard();
-                updateRetentionBadge();
-            } catch (err) {
-                showToast('⚠️ Erro ao conectar no servidor: ' + err.message);
-            }
-            hideLoading();
-        });
-    </script>
+    // Load data
+    showLoading();
+    try{ await refreshData(); renderDashboard(); updateRetentionBadge(); }
+    catch(e){ showToast('⚠️ Erro ao conectar: '+e.message); }
+    hideLoading();
+});
+</script>
 </body>
 </html>

@@ -130,6 +130,13 @@ module.exports = async function handler(req, res) {
         await run('INSERT INTO orders(id,client_name,date,value,obs,created_at)VALUES(?,?,?,?,?,?)', [nid, client_name.trim(), date, parseFloat(value), obs || '', new Date().toISOString()]);
         return res.status(201).json(await one('SELECT * FROM orders WHERE id=?', [nid]));
       }
+      if (req.method === 'PUT' && id) {
+        const ex = await one('SELECT * FROM orders WHERE id=?', [id]);
+        if (!ex) return res.status(404).json({ error: 'Not found' });
+        const { date, value, obs } = b;
+        await run('UPDATE orders SET date=?,value=?,obs=? WHERE id=?', [date || ex.date, value !== undefined ? parseFloat(value) : ex.value, obs !== undefined ? obs : ex.obs, id]);
+        return res.json(await one('SELECT * FROM orders WHERE id=?', [id]));
+      }
       if (req.method === 'DELETE' && id) {
         const o = await one('SELECT * FROM orders WHERE id=?', [id]);
         if (!o) return res.status(404).json({ error: 'Not found' });
