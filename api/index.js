@@ -1,12 +1,10 @@
-const { createClient } = require('@libsql/client/web');
-
-// ==================== TURSO CLIENT ====================
-
+// All imports are lazy to diagnose Vercel bundling issues
 let _client = null;
 let _initialized = false;
 
 function getClient() {
     if (!_client) {
+        const { createClient } = require('@libsql/client/web');
         _client = createClient({
             url: process.env.TURSO_DATABASE_URL,
             authToken: process.env.TURSO_AUTH_TOKEN,
@@ -17,8 +15,7 @@ function getClient() {
 
 async function initDB() {
     if (_initialized) return;
-    const client = getClient();
-    await client.batch([
+    await getClient().batch([
         { sql: `CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT DEFAULT '', recurrence TEXT NOT NULL DEFAULT 'mensal', created_at TEXT NOT NULL DEFAULT (datetime('now')))` },
         { sql: `CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, client_name TEXT NOT NULL, date TEXT NOT NULL, value REAL NOT NULL DEFAULT 0, obs TEXT DEFAULT '', created_at TEXT NOT NULL DEFAULT (datetime('now')))` },
         { sql: `CREATE INDEX IF NOT EXISTS idx_orders_client ON orders(client_name)` },
@@ -28,8 +25,6 @@ async function initDB() {
     _initialized = true;
 }
 
-// ==================== QUERY HELPERS ====================
-
 function rowsToObjects(result) {
     return result.rows.map(row => {
         const obj = {};
@@ -38,47 +33,53 @@ function rowsToObjects(result) {
     });
 }
 
-async function queryAll(sql, args = []) {
-    return rowsToObjects(await getClient().execute({ sql, args }));
+async function queryAll(sql, args) {
+    return rowsToObjects(await getClient().execute({ sql, args: args || [] }));
 }
 
-async function queryOne(sql, args = []) {
+async function queryOne(sql, args) {
     const rows = await queryAll(sql, args);
     return rows[0] || null;
 }
 
-async function execSQL(sql, args = []) {
-    return getClient().execute({ sql, args });
+async function execSQL(sql, args) {
+    return getClient().execute({ sql, args: args || [] });
 }
 
-function generateId() {
+function gid() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
 }
 
-// ==================== VERCEL HANDLER ====================
-
 module.exports = async function handler(req, res) {
-    // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') return res.status(204).end();
 
+    const url = req.url || '/';
+    const body = req.body || {};
+
+    // Health check - NO database needed
+    if (url === '/api' || url === '/api/' || url.startsWith('/api/health')) {
+        return res.status(200).json({
+            status: 'ok',
+            hasUrl: !!process.env.TURSO_DATABASE_URL,
+            hasToken: !!process.env.TURSO_AUTH_TOKEN,
+            node: process.version
+        });
+    }
+
     try {
         await initDB();
+    } catch (err) {
+        return res.status(500).json({ error: 'DB init failed: ' + err.message });
+    }
 
-        const url = req.url || '/';
-        const body = req.body || {};
-
-        // ========== /api/health ==========
-        if (url === '/api' || url === '/api/' || url.startsWith('/api/health')) {
-            return res.status(200).json({ status: 'ok', message: 'Emporio Pascoto API' });
-        }
-
-        // ========== /api/clients ==========
+    try {
+        // ======= CLIENTS =======
         if (url.startsWith('/api/clients')) {
-            const id = url.replace(/^\/api\/clients\/?/, '').split('/')[0] || null;
+            const id = url.replace(/^\/api\/clients\/?/, '').split(/[/?]/)[0] || null;
 
             if (req.method === 'GET' && !id) {
                 return res.json(await queryAll('SELECT * FROM clients ORDER BY name ASC'));
@@ -92,7 +93,7 @@ module.exports = async function handler(req, res) {
                 if (!name || !name.trim()) return res.status(400).json({ error: 'Nome obrigatorio' });
                 const ex = await queryOne('SELECT * FROM clients WHERE LOWER(name) = LOWER(?)', [name.trim()]);
                 if (ex) return res.status(409).json({ error: 'Ja cadastrado', client: ex });
-                const nid = generateId();
+                const nid = gid();
                 await execSQL('INSERT INTO clients (id, name, phone, recurrence, created_at) VALUES (?, ?, ?, ?, ?)',
                     [nid, name.trim(), phone || '', recurrence || 'mensal', new Date().toISOString()]);
                 return res.status(201).json(await queryOne('SELECT * FROM clients WHERE id = ?', [nid]));
@@ -116,9 +117,9 @@ module.exports = async function handler(req, res) {
             }
         }
 
-        // ========== /api/orders ==========
+        // ======= ORDERS =======
         if (url.startsWith('/api/orders')) {
-            const id = url.replace(/^\/api\/orders\/?/, '').split('?')[0].split('/')[0] || null;
+            const id = url.replace(/^\/api\/orders\/?/, '').split(/[/?]/)[0] || null;
 
             if (req.method === 'GET') {
                 let orders = await queryAll('SELECT * FROM orders ORDER BY date DESC');
@@ -136,9 +137,9 @@ module.exports = async function handler(req, res) {
                 const ex = await queryOne('SELECT * FROM clients WHERE LOWER(name) = LOWER(?)', [client_name.trim()]);
                 if (!ex) {
                     await execSQL('INSERT INTO clients (id, name, phone, recurrence, created_at) VALUES (?, ?, ?, ?, ?)',
-                        [generateId(), client_name.trim(), phone || '', recurrence || 'mensal', new Date().toISOString()]);
+                        [gid(), client_name.trim(), phone || '', recurrence || 'mensal', new Date().toISOString()]);
                 }
-                const nid = generateId();
+                const nid = gid();
                 await execSQL('INSERT INTO orders (id, client_name, date, value, obs, created_at) VALUES (?, ?, ?, ?, ?, ?)',
                     [nid, client_name.trim(), date, parseFloat(value), obs || '', new Date().toISOString()]);
                 return res.status(201).json(await queryOne('SELECT * FROM orders WHERE id = ?', [nid]));
@@ -151,29 +152,23 @@ module.exports = async function handler(req, res) {
             }
         }
 
-        // ========== /api/stats ==========
+        // ======= STATS =======
         if (url.startsWith('/api/stats')) {
-            const [clients, orders] = await Promise.all([
-                queryAll('SELECT * FROM clients'),
-                queryAll('SELECT * FROM orders')
-            ]);
+            const [clients, orders] = await Promise.all([queryAll('SELECT * FROM clients'), queryAll('SELECT * FROM orders')]);
             const now = new Date();
             const cm = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
             const mo = orders.filter(o => o.date && o.date.startsWith(cm));
             const rc = clients.filter(c => c.recurrence !== 'avulso');
             return res.json({
-                totalClients: clients.length,
-                recurringClients: rc.length,
-                monthOrders: mo.length,
-                monthTotal: mo.reduce((s, o) => s + (o.value || 0), 0),
-                totalOrders: orders.length,
-                totalRevenue: orders.reduce((s, o) => s + (o.value || 0), 0),
+                totalClients: clients.length, recurringClients: rc.length,
+                monthOrders: mo.length, monthTotal: mo.reduce((s, o) => s + (o.value || 0), 0),
+                totalOrders: orders.length, totalRevenue: orders.reduce((s, o) => s + (o.value || 0), 0),
                 pendingClients: rc.filter(c => !mo.find(o => o.client_name && o.client_name.toLowerCase() === c.name.toLowerCase())).length,
                 currentMonth: cm
             });
         }
 
-        // ========== /api/export ==========
+        // ======= EXPORT =======
         if (url.startsWith('/api/export')) {
             const [clients, orders] = await Promise.all([
                 queryAll('SELECT * FROM clients ORDER BY name ASC'),
@@ -182,25 +177,18 @@ module.exports = async function handler(req, res) {
             return res.json({ clients, orders, exportDate: new Date().toISOString() });
         }
 
-        // ========== /api/import ==========
+        // ======= IMPORT =======
         if (url.startsWith('/api/import') && req.method === 'POST') {
             const { clients, orders } = body;
             if (!clients || !orders) return res.status(400).json({ error: 'Dados invalidos' });
-            const stmts = [
-                { sql: 'DELETE FROM orders', args: [] },
-                { sql: 'DELETE FROM clients', args: [] },
-            ];
+            const stmts = [{ sql: 'DELETE FROM orders', args: [] }, { sql: 'DELETE FROM clients', args: [] }];
             for (const c of clients) {
-                stmts.push({
-                    sql: 'INSERT INTO clients (id, name, phone, recurrence, created_at) VALUES (?, ?, ?, ?, ?)',
-                    args: [c.id, c.name, c.phone || '', c.recurrence || 'mensal', c.created_at || c.createdAt || new Date().toISOString()]
-                });
+                stmts.push({ sql: 'INSERT INTO clients (id, name, phone, recurrence, created_at) VALUES (?, ?, ?, ?, ?)',
+                    args: [c.id, c.name, c.phone || '', c.recurrence || 'mensal', c.created_at || c.createdAt || new Date().toISOString()] });
             }
             for (const o of orders) {
-                stmts.push({
-                    sql: 'INSERT INTO orders (id, client_name, date, value, obs, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-                    args: [o.id, o.client_name || o.clientName, o.date, o.value, o.obs || '', o.created_at || o.createdAt || new Date().toISOString()]
-                });
+                stmts.push({ sql: 'INSERT INTO orders (id, client_name, date, value, obs, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+                    args: [o.id, o.client_name || o.clientName, o.date, o.value, o.obs || '', o.created_at || o.createdAt || new Date().toISOString()] });
             }
             await getClient().batch(stmts, 'write');
             return res.json({ message: 'Importado', clients: clients.length, orders: orders.length });
