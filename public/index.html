@@ -375,6 +375,21 @@ tbody tr:last-child td{border-bottom:none}
   <!-- DASHBOARD -->
   <section id="v-dashboard" class="view active">
     <div class="section-head"><div><h2>📊 Visão Geral</h2><p id="dashSub">Resumo do seu negócio em tempo real</p></div></div>
+    <div class="filters">
+      <div class="chips" id="dashPresets">
+        <span style="font-size:.78rem;color:var(--muted);font-weight:600;margin-right:2px">Período:</span>
+        <button class="chip" data-period="all">Tudo</button>
+        <button class="chip" data-period="0">Hoje</button>
+        <button class="chip" data-period="7">7 dias</button>
+        <button class="chip" data-period="30">30 dias</button>
+        <button class="chip active" data-period="month">Este mês</button>
+        <button class="chip" data-period="lastmonth">Mês passado</button>
+      </div>
+      <div class="filters-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));max-width:520px">
+        <div class="fg"><label>De</label><input type="date" id="dFrom"></div>
+        <div class="fg"><label>Até</label><input type="date" id="dTo"></div>
+      </div>
+    </div>
     <div class="stats" id="statsGrid"></div>
     <div class="grid-2">
       <div class="card">
@@ -382,16 +397,16 @@ tbody tr:last-child td{border-bottom:none}
         <div class="card-pad"><div class="chart-bars" id="revChart"></div></div>
       </div>
       <div class="card">
-        <div class="card-head"><h3>🏆 Top clientes</h3></div>
+        <div class="card-head"><h3>🏆 Top clientes <span class="faint" style="font-weight:500;font-size:.78rem">(período)</span></h3></div>
         <div class="card-pad"><div class="toplist" id="topClients"></div></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-head"><h3>🚦 Status dos pedidos do mês</h3></div>
+      <div class="card-head"><h3>🚦 Status dos pedidos <span class="faint" style="font-weight:500;font-size:.78rem">(período)</span></h3></div>
       <div class="card-pad"><div class="statusbar" id="statusBar"></div><div class="legend" id="statusLegend"></div></div>
     </div>
     <div class="card">
-      <div class="card-head"><h3>🧾 Últimos pedidos</h3><button class="btn btn-ghost btn-sm" onclick="switchTab('pedidos')">Ver todos →</button></div>
+      <div class="card-head"><h3>🧾 Pedidos do período</h3><button class="btn btn-ghost btn-sm" onclick="switchTab('pedidos')">Ver todos →</button></div>
       <div class="table-scroll"><table><thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Status</th><th>Observação</th></tr></thead><tbody id="recentBody"></tbody></table></div>
     </div>
   </section>
@@ -673,30 +688,39 @@ function showSkeleton(){
 }
 
 /* ==================== DASHBOARD ==================== */
+function inRange(o,from,to){const d=(o.date||'').split('T')[0];if(!d)return false;if(from&&d<from)return false;if(to&&d>to)return false;return true;}
+function getDashRange(){return {from:document.getElementById('dFrom').value,to:document.getElementById('dTo').value};}
+function periodLabel(from,to){
+  if(!from&&!to)return 'Todo o período';
+  if(from&&to)return from===to?fmtDate(from):`${fmtDate(from)} até ${fmtDate(to)}`;
+  if(from)return `A partir de ${fmtDate(from)}`;
+  return `Até ${fmtDate(to)}`;
+}
+function applyDashPreset(kind){const {from,to}=computePreset(kind);document.getElementById('dFrom').value=from;document.getElementById('dTo').value=to;renderDashboard();}
 function renderDashboard(){
-  const cm=curMonth(),now=new Date();
-  const mo=_orders.filter(o=>o.date&&o.date.startsWith(cm));
-  const mt=mo.reduce((s,o)=>s+(o.value||0),0);
-  const ta=_orders.reduce((s,o)=>s+(o.value||0),0);
+  const {from,to}=getDashRange();
+  const po=_orders.filter(o=>inRange(o,from,to));
+  const mt=po.reduce((s,o)=>s+(o.value||0),0);
+  const ticket=po.length?mt/po.length:0;
+  const aReceber=po.filter(o=>st(o)!=='pago').reduce((s,o)=>s+(o.value||0),0);
   const rc=_clients.filter(c=>c.recurrence!=='avulso');
-  const pend=rc.filter(c=>!mo.find(o=>(o.client_name||'').toLowerCase()===c.name.toLowerCase()));
+  const novos=_clients.filter(c=>c.created_at&&inRange({date:c.created_at},from,to)).length;
   const ret=getRetention().length;
-  const aReceber=_orders.filter(o=>st(o)!=='pago').reduce((s,o)=>s+(o.value||0),0);
-  document.getElementById('dashSub').textContent=`${monthFull(now.getMonth())} de ${now.getFullYear()}`;
+  document.getElementById('dashSub').textContent='📅 '+periodLabel(from,to);
   document.getElementById('statsGrid').innerHTML=`
-    <div class="stat green"><div class="k">💰 Faturamento do mês</div><div class="v">${fmtBRL(mt)}</div><div class="s">${mo.length} pedido(s) · média ${fmtBRL(mo.length?mt/mo.length:0)}</div></div>
-    <div class="stat teal"><div class="k">📦 Pedidos no mês</div><div class="v">${mo.length}</div><div class="s">${_orders.length} no total (geral)</div></div>
-    <div class="stat blue"><div class="k">👥 Clientes</div><div class="v">${_clients.length}</div><div class="s">${rc.length} com recorrência</div></div>
-    <div class="stat amber click" onclick="switchTab('recorrencia')"><div class="k">⏳ A receber</div><div class="v">${fmtBRL(aReceber)}</div><div class="s">Pedidos não pagos</div></div>
-    <div class="stat ${pend.length?'amber':'green'} click" onclick="switchTab('recorrencia')"><div class="k">⚠️ Pendentes do mês</div><div class="v">${pend.length}</div><div class="s">Recorrentes que não pediram</div></div>
+    <div class="stat green"><div class="k">💰 Faturamento</div><div class="v">${fmtBRL(mt)}</div><div class="s">no período selecionado</div></div>
+    <div class="stat teal"><div class="k">📦 Pedidos</div><div class="v">${po.length}</div><div class="s">${novos} cliente(s) novo(s) no período</div></div>
+    <div class="stat blue"><div class="k">🎯 Ticket médio</div><div class="v">${fmtBRL(ticket)}</div><div class="s">por pedido no período</div></div>
+    <div class="stat ${aReceber>0?'amber':'green'} click" onclick="switchTab('pedidos')"><div class="k">⏳ A receber</div><div class="v">${fmtBRL(aReceber)}</div><div class="s">não pagos no período</div></div>
+    <div class="stat blue click" onclick="switchTab('clientes')"><div class="k">👥 Clientes (total)</div><div class="v">${_clients.length}</div><div class="s">${rc.length} com recorrência</div></div>
     <div class="stat ${ret?'red':'green'} click" onclick="switchTab('retencao')"><div class="k">🚨 Em risco (retenção)</div><div class="v">${ret}</div><div class="s">${ret?'Passaram do prazo!':'Todos em dia ✅'}</div></div>`;
-  renderRevChart();renderTopClients();renderStatusBar(mo);
-  const recent=[..._orders].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+  renderRevChart();renderTopClients(po);renderStatusBar(po);
+  const recent=[...po].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
   const tb=document.getElementById('recentBody');
   tb.innerHTML=recent.length?recent.map(o=>`<tr>
     <td class="cell-name">${esc(o.client_name)}</td><td class="muted">${fmtDate(o.date)}</td>
     <td class="cell-val">${fmtBRL(o.value)}</td><td>${statusBadge(st(o))}</td><td class="muted">${esc(o.obs)||'-'}</td></tr>`).join('')
-    :'<tr><td colspan="5"><div class="empty"><div class="ic">📦</div><h3>Nenhum pedido ainda</h3><p>Comece registrando seu primeiro pedido!</p></div></td></tr>';
+    :'<tr><td colspan="5"><div class="empty"><div class="ic">📦</div><h3>Nenhum pedido neste período</h3><p>Ajuste o filtro de período acima</p></div></td></tr>';
   updateRetBadge();
 }
 function statusBadge(s){const x=STATUS[s]||STATUS.pendente;return `<span class="badge b-${s}">${x.e} ${x.l}</span>`;}
@@ -712,9 +736,10 @@ function renderRevChart(){
       <div class="lbl">${monthName(d.m)}<small>${String(d.y).slice(2)}</small></div></div>`;
   }).join('');
 }
-function renderTopClients(){
+function renderTopClients(list){
+  list=list||_orders;
   const map={};
-  _orders.forEach(o=>{const k=o.client_name||'';map[k]=(map[k]||0)+(o.value||0);});
+  list.forEach(o=>{const k=o.client_name||'';map[k]=(map[k]||0)+(o.value||0);});
   const top=Object.entries(map).map(([nm,vl])=>({nm,vl})).sort((a,b)=>b.vl-a.vl).slice(0,5);
   const max=Math.max(...top.map(t=>t.vl),1);
   const el=document.getElementById('topClients');
@@ -727,7 +752,7 @@ function renderStatusBar(list){
   const tot=list.length||1;
   const bar=document.getElementById('statusBar');
   bar.innerHTML=['pendente','entregue','pago'].map(s=>{const p=(c[s]/tot)*100;return p>0?`<div class="seg ${s}" style="flex:${c[s]}" title="${STATUS[s].l}: ${c[s]}">${p>=12?c[s]:''}</div>`:'';}).join('')
-    ||'<div class="seg" style="flex:1;background:var(--line);color:var(--muted)">Sem pedidos no mês</div>';
+    ||'<div class="seg" style="flex:1;background:var(--line);color:var(--muted)">Sem pedidos no período</div>';
   document.getElementById('statusLegend').innerHTML=['pendente','entregue','pago'].map(s=>`<span><i style="background:var(--${s})"></i>${STATUS[s].e} ${STATUS[s].l}: <b>&nbsp;${c[s]}</b></span>`).join('');
 }
 
@@ -880,17 +905,16 @@ function clearFilters(){
   document.querySelectorAll('#periodPresets .chip').forEach(c=>c.classList.toggle('active',c.dataset.period==='all'));
   renderOrders();
 }
-function applyPeriodPreset(kind){
+function computePreset(kind){
   const t=new Date();const f=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  let from='',to='';
-  if(kind==='0'){from=to=f(t);}
-  else if(kind==='7'){const s=new Date(t);s.setDate(s.getDate()-6);from=f(s);to=f(t);}
-  else if(kind==='30'){const s=new Date(t);s.setDate(s.getDate()-29);from=f(s);to=f(t);}
-  else if(kind==='month'){from=f(new Date(t.getFullYear(),t.getMonth(),1));to=f(t);}
-  else if(kind==='lastmonth'){from=f(new Date(t.getFullYear(),t.getMonth()-1,1));to=f(new Date(t.getFullYear(),t.getMonth(),0));}
-  document.getElementById('fFrom').value=from;document.getElementById('fTo').value=to;
-  ordersPage=1;renderOrders();
+  if(kind==='0')return {from:f(t),to:f(t)};
+  if(kind==='7'){const s=new Date(t);s.setDate(s.getDate()-6);return {from:f(s),to:f(t)};}
+  if(kind==='30'){const s=new Date(t);s.setDate(s.getDate()-29);return {from:f(s),to:f(t)};}
+  if(kind==='month')return {from:f(new Date(t.getFullYear(),t.getMonth(),1)),to:f(t)};
+  if(kind==='lastmonth')return {from:f(new Date(t.getFullYear(),t.getMonth()-1,1)),to:f(new Date(t.getFullYear(),t.getMonth(),0))};
+  return {from:'',to:''};
 }
+function applyPeriodPreset(kind){const {from,to}=computePreset(kind);document.getElementById('fFrom').value=from;document.getElementById('fTo').value=to;ordersPage=1;renderOrders();}
 async function bulkAction(status){
   const sel=document.getElementById('bulkAction');
   if(!status){return;}
@@ -1170,6 +1194,8 @@ function phoneMask(el){
 document.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
   document.getElementById('recMonth').value=curMonth();
+  // dashboard: periodo padrao = este mes
+  {const p=computePreset('month');document.getElementById('dFrom').value=p.from;document.getElementById('dTo').value=p.to;}
 
   // nav
   document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.tab);});
@@ -1197,6 +1223,15 @@ document.addEventListener('DOMContentLoaded',async()=>{
     document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.remove('active'));chip.classList.add('active');
     renderOrders();
   });
+  // dashboard filters
+  document.getElementById('dashPresets').addEventListener('click',e=>{
+    const chip=e.target.closest('.chip');if(!chip)return;
+    document.querySelectorAll('#dashPresets .chip').forEach(c=>c.classList.remove('active'));chip.classList.add('active');
+    applyDashPreset(chip.dataset.period);
+  });
+  ['dFrom','dTo'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{
+    document.querySelectorAll('#dashPresets .chip').forEach(c=>c.classList.remove('active'));renderDashboard();
+  }));
   // sortable headers (orders)
   document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{
     const k=th.dataset.sort;
