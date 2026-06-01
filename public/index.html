@@ -7,9 +7,6 @@
 <title>Empório Pascoto · Gestão de Pedidos</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="logo-pascoto.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --brand:#16a34a; --brand-bright:#22c55e; --brand-deep:#0f7a39; --brand-ink:#181d1a;
@@ -23,13 +20,13 @@
   --shadow-sm:0 1px 2px rgba(20,30,25,.05);
   --shadow:0 4px 16px rgba(20,30,25,.06),0 1px 3px rgba(20,30,25,.04);
   --shadow-lg:0 24px 60px rgba(20,30,25,.16);
-  --font-d:'Fraunces',Georgia,'Times New Roman',serif;
-  --font-b:'Plus Jakarta Sans',-apple-system,system-ui,sans-serif;
+  --font-d:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --font-b:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{font-family:var(--font-b);background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.55}
-h1,h2,h3,h4{font-family:var(--font-d);letter-spacing:-.005em;font-optical-sizing:auto;color:var(--brand-ink)}
+h1,h2,h3,h4{font-family:var(--font-d);letter-spacing:-.015em;color:var(--brand-ink)}
 button{font-family:inherit}
 ::selection{background:var(--accent);color:#fff}
 a{color:var(--brand);text-underline-offset:2px}
@@ -77,7 +74,7 @@ a{color:var(--brand);text-underline-offset:2px}
 /* ---------- Section heads ---------- */
 .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap;
   border-bottom:1px solid var(--line-strong);padding-bottom:16px}
-.section-head h2{font-size:1.9rem;font-weight:600;color:var(--brand-ink);line-height:1.1}
+.section-head h2{font-size:1.55rem;font-weight:700;color:var(--brand-ink);line-height:1.15}
 .section-head p{color:var(--muted);font-size:.88rem;margin-top:5px}
 
 /* ---------- Stat cards (editorial) ---------- */
@@ -86,7 +83,7 @@ a{color:var(--brand);text-underline-offset:2px}
   transition:.18s;display:flex;flex-direction:column;min-width:0}
 .stat:hover{border-color:var(--line-strong);box-shadow:var(--shadow-sm);transform:translateY(-1px)}
 .stat .k{font-size:.69rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
-.stat .v{font-family:var(--font-d);font-size:2.1rem;font-weight:600;color:var(--brand-ink);line-height:1.05;margin-top:12px;letter-spacing:-.015em;white-space:nowrap}
+.stat .v{font-family:var(--font-d);font-size:2.05rem;font-weight:700;color:var(--brand-ink);line-height:1.05;margin-top:12px;letter-spacing:-.02em;white-space:nowrap}
 .stat .s{font-size:.75rem;color:var(--faint);margin-top:6px}
 .stat.click{cursor:pointer}
 .stat.hero .v{font-size:2.5rem;color:var(--accent)}
@@ -95,7 +92,7 @@ a{color:var(--brand);text-underline-offset:2px}
 /* ---------- Cards ---------- */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:22px;overflow:hidden}
 .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.card-head h3{font-size:1.18rem;font-weight:600;color:var(--brand-ink);display:flex;align-items:baseline;gap:8px}
+.card-head h3{font-size:1.02rem;font-weight:700;color:var(--brand-ink);display:flex;align-items:baseline;gap:8px}
 .card-pad{padding:22px}
 .grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}
 @media(max-width:860px){.grid-2{grid-template-columns:1fr}}
@@ -254,7 +251,7 @@ tbody tr:last-child td{border-bottom:none}
 .modal{background:var(--surface);border-radius:var(--radius);width:100%;max-width:680px;max-height:88vh;overflow-y:auto;
   box-shadow:var(--shadow-lg);border-top:3px solid var(--accent);animation:pop .22s cubic-bezier(.2,.8,.2,1)}
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px 0}
-.modal-head h2{font-size:1.4rem;color:var(--brand-ink);font-weight:600}
+.modal-head h2{font-size:1.25rem;color:var(--brand-ink);font-weight:700}
 .modal-x{background:var(--surface-2);border:1px solid var(--line);width:34px;height:34px;border-radius:var(--radius-xs);font-size:1.2rem;cursor:pointer;color:var(--muted);
   line-height:1;transition:.16s}
 .modal-x:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
