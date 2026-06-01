@@ -432,8 +432,18 @@ tbody tr:last-child td{border-bottom:none}
     <div class="section-head"><div><h2>📋 Pedidos</h2><p>Filtre, ordene e gerencie todos os pedidos</p></div>
       <button class="btn btn-ghost btn-sm" onclick="exportCSV()">📊 Exportar CSV</button></div>
     <div class="filters">
+      <div class="chips" id="periodPresets">
+        <span style="font-size:.78rem;color:var(--muted);font-weight:600;margin-right:2px">Período:</span>
+        <button class="chip active" data-period="all">Tudo</button>
+        <button class="chip" data-period="0">Hoje</button>
+        <button class="chip" data-period="7">7 dias</button>
+        <button class="chip" data-period="30">30 dias</button>
+        <button class="chip" data-period="month">Este mês</button>
+        <button class="chip" data-period="lastmonth">Mês passado</button>
+      </div>
       <div class="filters-grid">
-        <div class="fg"><label>Mês</label><input type="month" id="fMonth"></div>
+        <div class="fg"><label>De</label><input type="date" id="fFrom"></div>
+        <div class="fg"><label>Até</label><input type="date" id="fTo"></div>
         <div class="fg"><label>Cliente</label><select id="fClient"><option value="">Todos</option></select></div>
         <div class="fg"><label>Valor mín. (R$)</label><input type="number" id="fMin" min="0" step="0.01" placeholder="0"></div>
         <div class="fg"><label>Valor máx. (R$)</label><input type="number" id="fMax" min="0" step="0.01" placeholder="∞"></div>
@@ -756,13 +766,15 @@ function setupAutoFill(){
 
 /* ==================== PEDIDOS ==================== */
 function getFilteredOrders(){
-  const mf=document.getElementById('fMonth').value;
+  const from=document.getElementById('fFrom').value;
+  const to=document.getElementById('fTo').value;
   const cf=document.getElementById('fClient').value;
   const mn=parseFloat(document.getElementById('fMin').value);
   const mx=parseFloat(document.getElementById('fMax').value);
   const q=(document.getElementById('fSearch').value||'').toLowerCase().trim();
   let r=[..._orders];
-  if(mf)r=r.filter(o=>o.date&&o.date.startsWith(mf));
+  if(from)r=r.filter(o=>o.date&&(o.date.split('T')[0]>=from));
+  if(to)r=r.filter(o=>o.date&&(o.date.split('T')[0]<=to));
   if(cf)r=r.filter(o=>(o.client_name||'').toLowerCase()===cf.toLowerCase());
   if(filterStatus)r=r.filter(o=>st(o)===filterStatus);
   if(!isNaN(mn))r=r.filter(o=>(o.value||0)>=mn);
@@ -852,12 +864,24 @@ function fillClientFilter(){
   sel.innerHTML='<option value="">Todos</option>'+_clients.map(c=>`<option value="${esc(c.name)}" ${c.name===cur?'selected':''}>${esc(c.name)}</option>`).join('');
 }
 function clearFilters(){
-  document.getElementById('fMonth').value='';document.getElementById('fClient').value='';
+  document.getElementById('fFrom').value='';document.getElementById('fTo').value='';document.getElementById('fClient').value='';
   document.getElementById('fMin').value='';document.getElementById('fMax').value='';
   document.getElementById('fSearch').value='';document.getElementById('fSort').value='date-desc';
   filterStatus='';ordersSort={key:'date',dir:'desc'};ordersPage=1;
   document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.st===''));
+  document.querySelectorAll('#periodPresets .chip').forEach(c=>c.classList.toggle('active',c.dataset.period==='all'));
   renderOrders();
+}
+function applyPeriodPreset(kind){
+  const t=new Date();const f=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  let from='',to='';
+  if(kind==='0'){from=to=f(t);}
+  else if(kind==='7'){const s=new Date(t);s.setDate(s.getDate()-6);from=f(s);to=f(t);}
+  else if(kind==='30'){const s=new Date(t);s.setDate(s.getDate()-29);from=f(s);to=f(t);}
+  else if(kind==='month'){from=f(new Date(t.getFullYear(),t.getMonth(),1));to=f(t);}
+  else if(kind==='lastmonth'){from=f(new Date(t.getFullYear(),t.getMonth()-1,1));to=f(new Date(t.getFullYear(),t.getMonth(),0));}
+  document.getElementById('fFrom').value=from;document.getElementById('fTo').value=to;
+  ordersPage=1;renderOrders();
 }
 function syncSortArrows(attr,state){
   document.querySelectorAll(`th[${attr}]`).forEach(th=>{
@@ -1135,9 +1159,17 @@ document.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('clientForm').addEventListener('submit',saveClient);
 
   // pedidos filters
-  ['fMonth','fClient','fSort'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ordersPage=1;renderOrders();}));
+  ['fClient','fSort'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ordersPage=1;renderOrders();}));
+  ['fFrom','fTo'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{
+    ordersPage=1;document.querySelectorAll('#periodPresets .chip').forEach(c=>c.classList.remove('active'));renderOrders();
+  }));
   ['fMin','fMax'].forEach(id=>document.getElementById(id).addEventListener('input',debounce(()=>{ordersPage=1;renderOrders();})));
   document.getElementById('fSearch').addEventListener('input',debounce(()=>{ordersPage=1;renderOrders();}));
+  document.getElementById('periodPresets').addEventListener('click',e=>{
+    const chip=e.target.closest('.chip');if(!chip)return;
+    document.querySelectorAll('#periodPresets .chip').forEach(c=>c.classList.remove('active'));chip.classList.add('active');
+    applyPeriodPreset(chip.dataset.period);
+  });
   document.getElementById('statusChips').addEventListener('click',e=>{
     const chip=e.target.closest('.chip');if(!chip)return;
     filterStatus=chip.dataset.st;ordersPage=1;
