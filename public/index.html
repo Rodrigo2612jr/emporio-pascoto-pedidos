@@ -1,769 +1,1185 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📦 Gestão de Pedidos WhatsApp - Empório Pascoto</title>
-    <style>
-        :root { --primary:#25D366; --primary-dark:#128C7E; --accent:#075E54; --danger:#e74c3c; --warning:#f39c12; --success:#27ae60; --bg:#f0f2f5; --card:#fff; --text:#1a1a2e; --text-light:#6c757d; --border:#e0e0e0; --shadow:0 2px 12px rgba(0,0,0,0.08); }
-        *{margin:0;padding:0;box-sizing:border-box;}
-        body{font-family:'Segoe UI',Tahoma,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-        .header{background:linear-gradient(135deg,var(--accent),var(--primary-dark));color:#fff;padding:20px 30px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 15px rgba(0,0,0,0.15);position:sticky;top:0;z-index:100;}
-        .header h1{font-size:1.5rem;font-weight:600;}
-        .header-actions{display:flex;gap:10px;}
-        .header-actions button{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;transition:all .2s;}
-        .header-actions button:hover{background:rgba(255,255,255,0.25);}
-        .nav-tabs{display:flex;background:#fff;border-bottom:2px solid var(--border);padding:0 20px;overflow-x:auto;}
-        .nav-tab{padding:14px 24px;border:none;background:none;cursor:pointer;font-size:0.95rem;font-weight:500;color:var(--text-light);border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap;position:relative;}
-        .nav-tab:hover{color:var(--primary-dark);}
-        .nav-tab.active{color:var(--primary-dark);border-bottom-color:var(--primary);font-weight:600;}
-        .main-content{max-width:1200px;margin:0 auto;padding:24px 20px;}
-        .tab-content{display:none;}.tab-content.active{display:block;}
-        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px;}
-        .stat-card{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow);border-left:4px solid var(--primary);}
-        .stat-card.warning{border-left-color:var(--warning);}.stat-card.danger{border-left-color:var(--danger);}.stat-card.accent{border-left-color:var(--accent);}
-        .stat-card .stat-label{font-size:0.8rem;color:var(--text-light);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
-        .stat-card .stat-value{font-size:1.8rem;font-weight:700;color:var(--text);}
-        .stat-card .stat-sub{font-size:0.8rem;color:var(--text-light);margin-top:4px;}
-        .form-card{background:var(--card);border-radius:12px;padding:24px;box-shadow:var(--shadow);margin-bottom:24px;}
-        .form-card h2{font-size:1.15rem;margin-bottom:20px;color:var(--accent);display:flex;align-items:center;gap:8px;}
-        .form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px;}
-        .form-group{display:flex;flex-direction:column;}
-        .form-group label{font-size:0.85rem;font-weight:600;color:var(--text);margin-bottom:6px;}
-        .form-group input,.form-group select,.form-group textarea{padding:10px 14px;border:2px solid var(--border);border-radius:8px;font-size:0.95rem;transition:border-color .2s;font-family:inherit;}
-        .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);}
-        .btn{padding:10px 24px;border:none;border-radius:8px;cursor:pointer;font-size:0.95rem;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
-        .btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:var(--primary-dark);}
-        .btn-danger{background:var(--danger);color:#fff;}.btn-danger:hover{background:#c0392b;}
-        .btn-secondary{background:var(--text-light);color:#fff;}.btn-secondary:hover{background:#555;}
-        .btn-warning{background:var(--warning);color:#fff;}.btn-warning:hover{background:#e67e22;}
-        .btn-sm{padding:6px 12px;font-size:0.8rem;}
-        .table-wrapper{background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;}
-        .table-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
-        .table-header h3{font-size:1rem;color:var(--accent);}
-        .search-box{padding:8px 14px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;width:260px;}
-        .search-box:focus{outline:none;border-color:var(--primary);}
-        table{width:100%;border-collapse:collapse;}
-        thead th{background:#f8f9fa;padding:12px 16px;text-align:left;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-light);border-bottom:2px solid var(--border);}
-        tbody td{padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:0.9rem;}
-        tbody tr:hover{background:#f8fffe;}
-        .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;}
-        .badge-success{background:#d4edda;color:#155724;}.badge-warning{background:#fff3cd;color:#856404;}.badge-danger{background:#f8d7da;color:#721c24;}.badge-info{background:#d1ecf1;color:#0c5460;}
-        .actions-cell{display:flex;gap:6px;flex-wrap:wrap;}
-        .recurrence-status{display:flex;align-items:center;gap:6px;}
-        .dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
-        .dot-green{background:var(--success);}.dot-yellow{background:var(--warning);}.dot-red{background:var(--danger);}
-        .filter-bar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
-        .filter-bar label{font-weight:600;font-size:0.9rem;}
-        .filter-bar select,.filter-bar input{padding:8px 14px;border:2px solid var(--border);border-radius:8px;font-size:0.9rem;}
-        .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:200;justify-content:center;align-items:center;}
-        .modal-overlay.active{display:flex;}
-        .modal{background:#fff;border-radius:16px;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,0.2);}
-        .modal h2{font-size:1.3rem;color:var(--accent);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
-        .modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--text-light);}
-        .client-timeline{position:relative;padding-left:24px;}
-        .client-timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:var(--border);}
-        .timeline-item{position:relative;margin-bottom:16px;padding:12px 16px;background:#f8f9fa;border-radius:8px;}
-        .timeline-item::before{content:'';position:absolute;left:-20px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--primary);}
-        .timeline-date{font-size:0.8rem;color:var(--text-light);}
-        .timeline-value{font-size:1.1rem;font-weight:700;color:var(--accent);}
-        .timeline-obs{font-size:0.85rem;color:var(--text-light);margin-top:4px;}
-        .empty-state{text-align:center;padding:60px 20px;color:var(--text-light);}
-        .empty-state .icon{font-size:3rem;margin-bottom:12px;}
-        .toast{position:fixed;bottom:24px;right:24px;background:var(--accent);color:#fff;padding:14px 24px;border-radius:10px;font-size:0.9rem;box-shadow:0 8px 25px rgba(0,0,0,0.2);transform:translateY(100px);opacity:0;transition:all .3s ease;z-index:300;}
-        .toast.show{transform:translateY(0);opacity:1;}
-        .retention-alert{background:linear-gradient(135deg,#fff5f5,#ffe0e0);border:2px solid var(--danger);border-radius:12px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:16px;}
-        .retention-alert .alert-icon{font-size:2.5rem;flex-shrink:0;}
-        .retention-alert .alert-text h3{color:var(--danger);font-size:1.1rem;margin-bottom:4px;}
-        .retention-alert .alert-text p{color:var(--text-light);font-size:0.85rem;}
-        .urgency-critical{background:#f8d7da;border-left:4px solid var(--danger);}.urgency-high{background:#fff3cd;border-left:4px solid var(--warning);}.urgency-medium{background:#fff8e1;border-left:4px solid #ffb300;}
-        .retention-card{background:var(--card);border-radius:12px;padding:20px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:16px;transition:transform .15s;}
-        .retention-card:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(0,0,0,0.12);}
-        .retention-card .client-info{flex:1;}
-        .retention-card .client-name{font-size:1.05rem;font-weight:700;color:var(--text);cursor:pointer;}
-        .retention-card .client-name:hover{color:var(--primary-dark);}
-        .retention-card .client-meta{font-size:0.82rem;color:var(--text-light);margin-top:4px;display:flex;gap:12px;flex-wrap:wrap;}
-        .retention-card .days-overdue{text-align:center;min-width:80px;}
-        .retention-card .days-overdue .days-number{font-size:1.6rem;font-weight:800;}
-        .retention-card .days-overdue .days-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;}
-        .days-critical .days-number{color:var(--danger);}.days-high .days-number{color:var(--warning);}.days-medium .days-number{color:#ffb300;}
-        .retention-card .card-actions{display:flex;gap:8px;flex-shrink:0;}
-        .badge-count{background:var(--danger);color:#fff;border-radius:50%;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;margin-left:6px;padding:0 5px;animation:pulse-badge 2s infinite;}
-        @keyframes pulse-badge{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
-        .retention-empty{text-align:center;padding:60px 20px;}
-        .retention-empty .icon{font-size:4rem;margin-bottom:12px;}
-        .retention-empty h3{color:var(--success);font-size:1.2rem;margin-bottom:8px;}
-        .retention-empty p{color:var(--text-light);font-size:0.9rem;}
-        .progress-bar-container{width:100%;height:6px;background:#e0e0e0;border-radius:3px;margin-top:6px;overflow:hidden;}
-        .progress-bar-fill{height:100%;border-radius:3px;transition:width .5s ease;}
-        .loading{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.8);z-index:999;display:none;justify-content:center;align-items:center;font-size:1.2rem;color:var(--accent);}
-        .loading.active{display:flex;}
-        .msg-preview{background:#e5ddd5;border-radius:12px;padding:16px 20px;margin-top:16px;position:relative;font-size:0.95rem;line-height:1.5;color:#303030;max-width:500px;}
-        .msg-preview::before{content:'';position:absolute;top:12px;left:-8px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:8px solid #e5ddd5;}
-        .msg-preview-label{font-size:0.75rem;color:var(--text-light);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;}
-        .var-tag{display:inline-block;background:var(--primary);color:#fff;padding:2px 10px;border-radius:12px;font-size:0.8rem;cursor:pointer;transition:all .15s;margin:2px;}
-        .var-tag:hover{background:var(--primary-dark);transform:scale(1.05);}
-        .msg-textarea{width:100%;min-height:120px;padding:14px;border:2px solid var(--border);border-radius:10px;font-size:1rem;font-family:inherit;line-height:1.6;resize:vertical;transition:border-color .2s;}
-        .msg-textarea:focus{outline:none;border-color:var(--primary);}
-        .msg-saved-indicator{display:inline-flex;align-items:center;gap:6px;color:var(--success);font-size:0.85rem;font-weight:600;opacity:0;transition:opacity .3s;}
-        .msg-saved-indicator.show{opacity:1;}
-        @media(max-width:768px){
-            .header{padding:16px;flex-direction:column;gap:12px;}.header h1{font-size:1.2rem;}
-            .main-content{padding:16px 12px;}.form-row{grid-template-columns:1fr;}.stats-grid{grid-template-columns:1fr 1fr;}
-            .search-box{width:100%;}.table-header{flex-direction:column;gap:10px;}.nav-tab{padding:12px 16px;font-size:0.85rem;}
-            table{font-size:0.8rem;}thead th,tbody td{padding:8px 10px;}
-            .retention-card{flex-direction:column;align-items:flex-start;}.retention-card .card-actions{width:100%;justify-content:flex-end;}
-        }
-        @media print{.header,.nav-tabs,.form-card,.header-actions,.actions-cell,.filter-bar{display:none!important;}.table-wrapper{box-shadow:none;}.tab-content{display:block!important;}}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b3d35">
+<title>Empório Pascoto · Gestão de Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#128C7E; --brand-bright:#25D366; --brand-deep:#0b3d35; --brand-ink:#0a2c27;
+  --bg:#eef2f0; --bg-2:#e6ece9; --surface:#ffffff; --surface-2:#f5f8f6;
+  --ink:#0f1f1a; --muted:#5f726b; --faint:#8a9a93; --line:#e3eae6; --line-strong:#d3ded8;
+  --pendente:#d97706; --pendente-bg:#fef3e2; --entregue:#2563eb; --entregue-bg:#e7efff;
+  --pago:#16a34a; --pago-bg:#e3f7ea;
+  --danger:#dc2626; --danger-bg:#fdecec; --warning:#ea580c; --medium:#d97706;
+  --radius:16px; --radius-sm:10px; --radius-xs:8px;
+  --shadow-sm:0 1px 2px rgba(11,61,53,.06),0 1px 3px rgba(11,61,53,.04);
+  --shadow:0 4px 16px rgba(11,61,53,.07),0 1px 3px rgba(11,61,53,.05);
+  --shadow-lg:0 24px 60px rgba(11,61,53,.18);
+  --font-d:'Bricolage Grotesque',-apple-system,system-ui,sans-serif;
+  --font-b:'Plus Jakarta Sans',-apple-system,system-ui,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--font-b);background:var(--bg);color:var(--ink);min-height:100vh;font-size:15px;line-height:1.5;
+  background-image:radial-gradient(1200px 600px at 100% -10%,rgba(37,211,102,.07),transparent 60%),radial-gradient(900px 500px at -10% 0,rgba(18,140,126,.06),transparent 55%);}
+h1,h2,h3,h4,.num{font-family:var(--font-d);letter-spacing:-.01em}
+button{font-family:inherit}
+::selection{background:var(--brand-bright);color:#04261f}
+a{color:var(--brand)}
+
+/* ---------- Header ---------- */
+.topbar{position:sticky;top:0;z-index:90;background:linear-gradient(120deg,var(--brand-deep),var(--brand) 75%);
+  color:#eafff7;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  box-shadow:0 8px 30px rgba(11,61,53,.22)}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand .logo{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.14);display:grid;place-items:center;font-size:22px;
+  border:1px solid rgba(255,255,255,.22);flex-shrink:0;backdrop-filter:blur(4px)}
+.brand .title{display:flex;flex-direction:column;min-width:0}
+.brand .title b{font-family:var(--font-d);font-weight:800;font-size:1.18rem;line-height:1.1;letter-spacing:-.02em;white-space:nowrap}
+.brand .title span{font-size:.74rem;opacity:.8;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.tb-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#eafff7;padding:9px 14px;border-radius:10px;
+  cursor:pointer;font-size:.85rem;font-weight:600;transition:.18s;display:inline-flex;align-items:center;gap:6px}
+.tb-btn:hover{background:rgba(255,255,255,.24);transform:translateY(-1px)}
+.tb-btn:active{transform:translateY(0)}
+.tb-menu{position:relative}
+.tb-dropdown{position:absolute;right:0;top:calc(100% + 8px);background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  box-shadow:var(--shadow-lg);min-width:210px;padding:6px;display:none;z-index:120}
+.tb-dropdown.open{display:block;animation:pop .14s ease}
+.tb-dropdown button{display:flex;align-items:center;gap:10px;width:100%;background:none;border:none;color:var(--ink);
+  padding:10px 12px;border-radius:8px;cursor:pointer;font-size:.88rem;font-weight:500;text-align:left}
+.tb-dropdown button:hover{background:var(--surface-2);color:var(--brand)}
+.tb-dropdown .sep{height:1px;background:var(--line);margin:5px 4px}
+
+/* ---------- Tabs ---------- */
+.nav{position:sticky;top:70px;z-index:80;background:rgba(255,255,255,.82);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);padding:8px 16px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.tab{padding:9px 16px;border:none;background:none;cursor:pointer;font-size:.9rem;font-weight:600;color:var(--muted);
+  border-radius:10px;transition:.16s;white-space:nowrap;display:inline-flex;align-items:center;gap:7px}
+.tab:hover{color:var(--brand-deep);background:var(--surface-2)}
+.tab.active{color:#fff;background:linear-gradient(120deg,var(--brand),var(--brand-bright));box-shadow:0 4px 12px rgba(18,140,126,.3)}
+.tab .pill{background:var(--danger);color:#fff;border-radius:20px;min-width:18px;height:18px;padding:0 5px;font-size:.68rem;
+  font-weight:800;display:inline-flex;align-items:center;justify-content:center;font-family:var(--font-b)}
+.tab.active .pill{background:rgba(255,255,255,.3)}
+
+.wrap{max-width:1240px;margin:0 auto;padding:26px 20px 60px}
+.view{display:none;animation:fade .3s ease}
+.view.active{display:block}
+
+/* ---------- Section heads ---------- */
+.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+.section-head h2{font-size:1.45rem;font-weight:800;color:var(--brand-ink);display:flex;align-items:center;gap:10px}
+.section-head p{color:var(--muted);font-size:.88rem;margin-top:2px}
+
+/* ---------- Stat cards ---------- */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:22px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px;box-shadow:var(--shadow-sm);
+  position:relative;overflow:hidden;transition:.18s}
+.stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--brand)}
+.stat.amber::after{background:var(--pendente)}.stat.blue::after{background:var(--entregue)}.stat.green::after{background:var(--pago)}
+.stat.red::after{background:var(--danger)}.stat.teal::after{background:var(--brand-deep)}
+.stat:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.stat .k{font-size:.74rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700;display:flex;align-items:center;gap:6px}
+.stat .v{font-family:var(--font-d);font-size:2rem;font-weight:800;color:var(--brand-ink);line-height:1.1;margin-top:8px;letter-spacing:-.02em}
+.stat .s{font-size:.78rem;color:var(--faint);margin-top:5px}
+.stat.click{cursor:pointer}
+
+/* ---------- Cards ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:20px;overflow:hidden}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card-head h3{font-size:1rem;font-weight:700;color:var(--brand-ink);display:flex;align-items:center;gap:8px}
+.card-pad{padding:20px}
+.grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+@media(max-width:860px){.grid-2{grid-template-columns:1fr}}
+
+/* ---------- Forms ---------- */
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px}
+.fg{display:flex;flex-direction:column}
+.fg label{font-size:.8rem;font-weight:700;color:var(--brand-ink);margin-bottom:7px;letter-spacing:.01em}
+.fg input,.fg select,.fg textarea{padding:11px 13px;border:1.5px solid var(--line-strong);border-radius:var(--radius-xs);font-size:.92rem;
+  font-family:inherit;background:var(--surface);color:var(--ink);transition:.16s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,211,102,.16)}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--faint)}
+.fg .hint{font-size:.72rem;color:var(--faint);margin-top:5px}
+
+/* ---------- Buttons ---------- */
+.btn{padding:11px 20px;border:none;border-radius:var(--radius-xs);cursor:pointer;font-size:.9rem;font-weight:700;transition:.16s;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:linear-gradient(120deg,var(--brand),var(--brand-bright));color:#fff;box-shadow:0 4px 12px rgba(18,140,126,.28)}
+.btn-primary:hover{filter:brightness(1.05);box-shadow:0 6px 18px rgba(18,140,126,.34)}
+.btn-ghost{background:var(--surface-2);color:var(--brand-ink);border:1px solid var(--line)}
+.btn-ghost:hover{background:#eaf1ee}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{filter:brightness(1.06)}
+.btn-wa{background:#25D366;color:#04261f}.btn-wa:hover{background:#1fc25c}
+.btn-sm{padding:7px 12px;font-size:.8rem;border-radius:8px}
+.btn-icon{padding:7px 9px;font-size:.82rem;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);cursor:pointer;
+  transition:.16s;color:var(--ink);line-height:1}
+.btn-icon:hover{background:#eaf1ee}
+.btn-icon.danger:hover{background:var(--danger-bg);border-color:#f3c0c0}
+
+/* ---------- Tables ---------- */
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:560px}
+thead th{background:var(--surface-2);padding:12px 16px;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);font-weight:700;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th.sortable:hover{color:var(--brand)}
+thead th .arr{opacity:.35;font-size:.7rem;margin-left:3px}
+thead th.sorted .arr{opacity:1;color:var(--brand)}
+tbody td{padding:12px 16px;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr:last-child td{border-bottom:none}
+.cell-name{font-weight:700;color:var(--brand-ink)}
+.cell-name.link{cursor:pointer}.cell-name.link:hover{color:var(--brand)}
+.cell-val{font-family:var(--font-d);font-weight:700}
+.row-actions{display:flex;gap:6px;flex-wrap:nowrap}
+.muted{color:var(--muted)}.faint{color:var(--faint)}
+
+/* ---------- Badges ---------- */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:.74rem;font-weight:700;white-space:nowrap}
+.b-info{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.b-pendente{background:var(--pendente-bg);color:var(--pendente)}
+.b-entregue{background:var(--entregue-bg);color:var(--entregue)}
+.b-pago{background:var(--pago-bg);color:var(--pago)}
+.b-green{background:var(--pago-bg);color:var(--pago)}
+.b-amber{background:var(--pendente-bg);color:var(--pendente)}
+.b-red{background:var(--danger-bg);color:var(--danger)}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot.g{background:var(--pago)}.dot.y{background:var(--medium)}.dot.r{background:var(--danger)}
+
+/* status select (inline) */
+.status-sel{appearance:none;border:1.5px solid transparent;border-radius:20px;padding:4px 26px 4px 11px;font-size:.74rem;font-weight:700;
+  cursor:pointer;font-family:inherit;background-position:right 8px center;background-repeat:no-repeat;background-size:9px;transition:.16s}
+.status-sel.s-pendente{background-color:var(--pendente-bg);color:var(--pendente);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23d97706' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+.status-sel.s-entregue{background-color:var(--entregue-bg);color:var(--entregue);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%232563eb' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+.status-sel.s-pago{background-color:var(--pago-bg);color:var(--pago);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2316a34a' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")}
+.status-sel:focus{outline:none;box-shadow:0 0 0 3px rgba(37,211,102,.18)}
+
+/* ---------- Filters ---------- */
+.filters{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:18px;box-shadow:var(--shadow-sm)}
+.filters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end}
+.filters .fg label{font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.filters input,.filters select{padding:9px 11px;border:1.5px solid var(--line-strong);border-radius:8px;font-size:.86rem;font-family:inherit;background:var(--surface);color:var(--ink)}
+.filters input:focus,.filters select:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,211,102,.14)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.chip{padding:6px 14px;border-radius:20px;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--muted);
+  font-size:.8rem;font-weight:600;cursor:pointer;transition:.14s}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+.chip.active{background:var(--brand-ink);color:#fff;border-color:var(--brand-ink)}
+.chip.active.c-pendente{background:var(--pendente);border-color:var(--pendente)}
+.chip.active.c-entregue{background:var(--entregue);border-color:var(--entregue)}
+.chip.active.c-pago{background:var(--pago);border-color:var(--pago)}
+.filters-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap}
+.result-summary{font-size:.84rem;color:var(--muted)}
+.result-summary b{color:var(--brand-ink);font-family:var(--font-d)}
+.search{position:relative}
+.search input{padding-left:34px;width:240px;max-width:100%}
+.search::before{content:"🔍";position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:.85rem;opacity:.55}
+
+/* ---------- Charts ---------- */
+.chart-bars{display:flex;align-items:flex-end;gap:10px;height:180px;padding:8px 4px 0}
+.chart-bars .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end;min-width:0}
+.chart-bars .bar{width:100%;max-width:46px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--brand-bright),var(--brand));
+  transition:height .6s cubic-bezier(.2,.8,.2,1);position:relative;min-height:3px}
+.chart-bars .bar:hover{filter:brightness(1.08)}
+.chart-bars .bar .tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--brand-ink);color:#fff;
+  font-size:.7rem;padding:3px 8px;border-radius:6px;white-space:nowrap;opacity:0;transition:.16s;pointer-events:none;font-weight:600}
+.chart-bars .col:hover .tip{opacity:1}
+.chart-bars .lbl{font-size:.72rem;color:var(--muted);font-weight:600;text-align:center}
+.chart-bars .lbl small{display:block;color:var(--faint);font-size:.66rem;font-weight:500}
+
+.toplist{display:flex;flex-direction:column;gap:12px}
+.toprow{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center}
+.toprow .rk{font-family:var(--font-d);font-weight:800;color:var(--faint);font-size:.9rem;text-align:center}
+.toprow .nm{font-weight:600;font-size:.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.toprow .vl{font-family:var(--font-d);font-weight:700;font-size:.85rem;color:var(--brand-deep)}
+.toprow .track{grid-column:2/4;height:7px;background:var(--surface-2);border-radius:6px;overflow:hidden;margin-top:-4px}
+.toprow .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--brand),var(--brand-bright));transition:width .6s ease}
+
+.statusbar{display:flex;height:30px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2)}
+.statusbar .seg{display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;transition:flex .5s ease;min-width:0;overflow:hidden}
+.statusbar .seg.pendente{background:var(--pendente)}.statusbar .seg.entregue{background:var(--entregue)}.statusbar .seg.pago{background:var(--pago)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px}
+.legend span{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);font-weight:600}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* ---------- Retention ---------- */
+.alert{display:flex;align-items:center;gap:16px;background:linear-gradient(120deg,#fff6f4,#fdecec);border:1.5px solid #f3c9c2;
+  border-radius:var(--radius);padding:18px 22px;margin-bottom:20px}
+.alert .ic{font-size:2rem;flex-shrink:0}
+.alert h3{color:var(--danger);font-size:1.05rem;margin-bottom:2px}
+.alert p{color:var(--muted);font-size:.85rem}
+.ret-card{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--line);border-left-width:4px;
+  border-radius:var(--radius);padding:16px 20px;margin-bottom:12px;box-shadow:var(--shadow-sm);transition:.16s;flex-wrap:wrap}
+.ret-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.ret-card.critical{border-left-color:var(--danger)}.ret-card.high{border-left-color:var(--warning)}.ret-card.medium{border-left-color:var(--medium)}
+.ret-days{text-align:center;min-width:74px}
+.ret-days .n{font-family:var(--font-d);font-size:1.9rem;font-weight:800;line-height:1}
+.ret-days .l{font-size:.66rem;text-transform:uppercase;letter-spacing:.04em;color:var(--faint);margin-top:2px}
+.ret-card.critical .ret-days .n{color:var(--danger)}.ret-card.high .ret-days .n{color:var(--warning)}.ret-card.medium .ret-days .n{color:var(--medium)}
+.ret-info{flex:1;min-width:200px}
+.ret-info .nm{font-size:1.05rem;font-weight:700;color:var(--brand-ink);cursor:pointer}
+.ret-info .nm:hover{color:var(--brand)}
+.ret-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:5px}
+.ret-actions{display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.progress{height:6px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-top:9px}
+.progress i{display:block;height:100%;border-radius:4px;transition:width .5s ease}
+
+/* ---------- Empty ---------- */
+.empty{text-align:center;padding:54px 20px;color:var(--muted)}
+.empty .ic{font-size:2.6rem;margin-bottom:10px;opacity:.7}
+.empty h3{color:var(--brand-ink);font-size:1.05rem;margin-bottom:5px;font-weight:700}
+.empty p{font-size:.86rem;color:var(--faint)}
+.empty.good .ic{font-size:3rem}.empty.good h3{color:var(--pago)}
+
+/* ---------- Modal ---------- */
+.overlay{position:fixed;inset:0;background:rgba(10,44,39,.5);backdrop-filter:blur(3px);z-index:200;display:none;
+  align-items:center;justify-content:center;padding:20px}
+.overlay.active{display:flex;animation:fade .2s ease}
+.modal{background:var(--surface);border-radius:20px;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;
+  box-shadow:var(--shadow-lg);animation:pop .22s cubic-bezier(.2,.8,.2,1)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px 0}
+.modal-head h2{font-size:1.25rem;color:var(--brand-ink);font-weight:800}
+.modal-x{background:var(--surface-2);border:none;width:34px;height:34px;border-radius:10px;font-size:1.2rem;cursor:pointer;color:var(--muted);
+  line-height:1;transition:.16s}
+.modal-x:hover{background:var(--danger-bg);color:var(--danger)}
+.modal-body{padding:18px 24px 24px}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;padding:0 24px 24px;flex-wrap:wrap}
+.confirm{max-width:430px}
+.confirm .ic{font-size:2.4rem;text-align:center;margin:6px 0 12px}
+.confirm p{text-align:center;color:var(--muted);font-size:.95rem;line-height:1.55}
+.confirm .ttl{text-align:center;font-size:1.2rem;font-weight:800;color:var(--brand-ink);margin-bottom:6px}
+
+/* timeline */
+.client-info-bar{display:flex;gap:18px;flex-wrap:wrap;background:var(--surface-2);border-radius:12px;padding:14px 16px;margin-bottom:18px;font-size:.85rem}
+.client-info-bar span{color:var(--muted)}.client-info-bar b{color:var(--brand-ink)}
+.tl-total{background:var(--pago-bg);border-radius:12px;padding:14px 16px;font-weight:700;color:var(--pago);margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;font-family:var(--font-d)}
+.timeline{position:relative;padding-left:26px}
+.timeline::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--line-strong)}
+.tl-item{position:relative;margin-bottom:14px;padding:13px 16px;background:var(--surface-2);border-radius:12px;border:1px solid var(--line)}
+.tl-item::before{content:"";position:absolute;left:-22px;top:18px;width:11px;height:11px;border-radius:50%;background:var(--brand);border:2px solid var(--surface)}
+.tl-item .top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tl-date{font-size:.78rem;color:var(--muted);font-weight:600}
+.tl-val{font-family:var(--font-d);font-size:1.05rem;font-weight:700;color:var(--brand-deep)}
+.tl-obs{font-size:.84rem;color:var(--muted);margin-top:6px}
+
+/* ---------- WhatsApp msg ---------- */
+.var-tag{display:inline-flex;background:var(--brand);color:#fff;padding:3px 11px;border-radius:14px;font-size:.78rem;cursor:pointer;
+  transition:.14s;margin:3px 3px 3px 0;font-weight:600}
+.var-tag:hover{background:var(--brand-bright);color:#04261f;transform:scale(1.05)}
+.msg-ta{width:100%;min-height:130px;padding:15px;border:1.5px solid var(--line-strong);border-radius:12px;font-size:1rem;
+  font-family:inherit;line-height:1.6;resize:vertical;transition:.16s}
+.msg-ta:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,211,102,.14)}
+.msg-preview{background:#dcf8c6;border-radius:14px 14px 14px 4px;padding:14px 18px;margin-top:14px;position:relative;font-size:.95rem;
+  line-height:1.55;color:#1a2e22;max-width:520px;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.msg-preview::after{content:"";position:absolute;bottom:0;left:-7px;width:0;height:0;border:8px solid transparent;border-right-color:#dcf8c6;border-bottom:0}
+.saved-ind{display:inline-flex;align-items:center;gap:5px;color:var(--pago);font-size:.82rem;font-weight:700;opacity:0;transition:.3s;margin-left:8px}
+.saved-ind.show{opacity:1}
+.tips li{margin-bottom:6px;color:var(--muted);font-size:.9rem;line-height:1.6}
+.tips li b{color:var(--brand-ink)}
+
+/* ---------- Toast ---------- */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:10px;align-items:flex-end}
+.toast{background:var(--brand-ink);color:#eafff7;padding:13px 18px;border-radius:12px;font-size:.88rem;font-weight:600;
+  box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:9px;animation:slidein .3s cubic-bezier(.2,.8,.2,1);max-width:340px}
+.toast.ok{background:linear-gradient(120deg,#0b3d35,#16a34a)}
+.toast.err{background:linear-gradient(120deg,#7f1d1d,#dc2626)}
+.toast.warn{background:linear-gradient(120deg,#7c3a00,#d97706)}
+.toast.hide{animation:slideout .3s ease forwards}
+
+/* ---------- Loading / skeleton ---------- */
+.skeleton{background:linear-gradient(90deg,var(--surface-2) 25%,#eef3f0 50%,var(--surface-2) 75%);background-size:200% 100%;
+  animation:shimmer 1.3s infinite;border-radius:8px}
+.sk-stat{height:108px;border-radius:var(--radius)}
+.sk-row{height:46px;margin:2px 0}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;
+  animation:spin .7s linear infinite;display:inline-block}
+.btn .spinner{width:15px;height:15px}
+
+/* pagination */
+.pager{display:flex;align-items:center;justify-content:center;gap:6px;padding:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pager button{min-width:34px;height:34px;border:1px solid var(--line-strong);background:var(--surface);border-radius:8px;cursor:pointer;
+  font-weight:700;font-size:.84rem;color:var(--muted);transition:.14s;padding:0 8px}
+.pager button:hover:not(:disabled){border-color:var(--brand);color:var(--brand)}
+.pager button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.pager .info{font-size:.8rem;color:var(--muted);margin:0 8px}
+
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes slidein{from{transform:translateX(120%);opacity:0}to{transform:none;opacity:1}}
+@keyframes slideout{to{transform:translateX(120%);opacity:0}}
+@keyframes shimmer{to{background-position:-200% 0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:768px){
+  .topbar{padding:12px 14px}.brand .title b{font-size:1.02rem}.brand .title span{font-size:.66rem}
+  .tb-btn span.lbl{display:none}.tb-btn{padding:9px 11px}
+  .nav{top:64px;padding:7px 10px}.wrap{padding:18px 12px 50px}
+  .stats{grid-template-columns:1fr 1fr;gap:10px}.stat .v{font-size:1.6rem}
+  .section-head h2{font-size:1.2rem}
+  .search input{width:100%}.grid-2{gap:14px}
+  .ret-card{gap:12px}.ret-days{min-width:60px}
+}
+@media(max-width:480px){.stats{grid-template-columns:1fr 1fr}}
+@media print{.topbar,.nav,.filters,.row-actions,.topbar-actions,.pager,.btn,.chips{display:none!important}
+  body{background:#fff}.card,.stat{box-shadow:none;border:1px solid #ccc}.view{display:block!important}}
+</style>
 </head>
 <body>
-    <div class="loading" id="loadingOverlay">⏳ Carregando...</div>
-    <div class="header">
-        <h1>📦 Gestão de Pedidos WhatsApp - Empório Pascoto</h1>
-        <div class="header-actions">
-            <button onclick="exportData()">📥 Exportar</button>
-            <button onclick="document.getElementById('importFile').click()">📤 Importar</button>
-            <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
-        </div>
+<!-- HEADER -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">🌿</div>
+    <div class="title"><b>Empório Pascoto</b><span>Gestão de Pedidos · WhatsApp</span></div>
+  </div>
+  <div class="topbar-actions">
+    <button class="tb-btn" onclick="switchTab('novo-pedido')">➕ <span class="lbl">Novo pedido</span></button>
+    <div class="tb-menu">
+      <button class="tb-btn" id="menuBtn">⚙️ <span class="lbl">Dados</span></button>
+      <div class="tb-dropdown" id="menuDrop">
+        <button onclick="exportJSON()">💾 Exportar backup (JSON)</button>
+        <button onclick="exportCSV()">📊 Exportar pedidos (CSV)</button>
+        <div class="sep"></div>
+        <button onclick="document.getElementById('importFile').click()">📤 Importar backup</button>
+        <button onclick="window.print()">🖨️ Imprimir / PDF</button>
+      </div>
     </div>
-    <div class="nav-tabs" id="navTabs">
-        <button class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
-        <button class="nav-tab" data-tab="novo-pedido">➕ Novo Pedido</button>
-        <button class="nav-tab" data-tab="clientes">👥 Clientes</button>
-        <button class="nav-tab" data-tab="pedidos">📋 Todos os Pedidos</button>
-        <button class="nav-tab" data-tab="recorrencia">🔄 Recorrência</button>
-        <button class="nav-tab" data-tab="retencao" id="navRetencao">🚨 Retenção</button>
-        <button class="nav-tab" data-tab="mensagem">💬 Mensagem</button>
+    <input type="file" id="importFile" hidden accept=".json" onchange="importJSON(event)">
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <button class="tab active" data-tab="dashboard">📊 Dashboard</button>
+  <button class="tab" data-tab="novo-pedido">➕ Novo Pedido</button>
+  <button class="tab" data-tab="pedidos">📋 Pedidos</button>
+  <button class="tab" data-tab="clientes">👥 Clientes</button>
+  <button class="tab" data-tab="recorrencia">🔄 Recorrência</button>
+  <button class="tab" data-tab="retencao" id="tabRet">🚨 Retenção</button>
+  <button class="tab" data-tab="mensagem">💬 Mensagem</button>
+</nav>
+
+<main class="wrap">
+  <!-- DASHBOARD -->
+  <section id="v-dashboard" class="view active">
+    <div class="section-head"><div><h2>📊 Visão Geral</h2><p id="dashSub">Resumo do seu negócio em tempo real</p></div></div>
+    <div class="stats" id="statsGrid"></div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><h3>📈 Faturamento (últimos 6 meses)</h3></div>
+        <div class="card-pad"><div class="chart-bars" id="revChart"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><h3>🏆 Top clientes</h3></div>
+        <div class="card-pad"><div class="toplist" id="topClients"></div></div>
+      </div>
     </div>
-    <div class="main-content">
-        <!-- DASHBOARD -->
-        <div id="tab-dashboard" class="tab-content active">
-            <div class="stats-grid" id="statsGrid"></div>
-            <div class="table-wrapper">
-                <div class="table-header"><h3>📋 Últimos Pedidos</h3></div>
-                <table><thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Observação</th></tr></thead><tbody id="recentOrdersBody"></tbody></table>
-            </div>
-        </div>
-        <!-- NOVO PEDIDO -->
-        <div id="tab-novo-pedido" class="tab-content">
-            <div class="form-card">
-                <h2>➕ Registrar Novo Pedido</h2>
-                <form id="orderForm">
-                    <div class="form-row">
-                        <div class="form-group"><label>Nome do Cliente *</label><input type="text" id="orderClient" list="clientList" required placeholder="Digite o nome" autocomplete="off"><datalist id="clientList"></datalist></div>
-                        <div class="form-group"><label>Telefone (WhatsApp)</label><input type="text" id="orderPhone" placeholder="(00) 00000-0000"></div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group"><label>Data do Pedido *</label><input type="date" id="orderDate" required></div>
-                        <div class="form-group"><label>Valor (R$) *</label><input type="number" id="orderValue" step="0.01" min="0" required placeholder="0,00"></div>
-                        <div class="form-group"><label>Recorrência do Cliente</label>
-                            <select id="orderRecurrence"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso (sem recorrência)</option></select>
-                        </div>
-                    </div>
-                    <div class="form-row"><div class="form-group"><label>Observação</label><textarea id="orderObs" rows="2" placeholder="Detalhes do pedido, itens, etc."></textarea></div></div>
-                    <button type="submit" class="btn btn-primary">✅ Salvar Pedido</button>
-                </form>
-            </div>
-            <div class="form-card">
-                <h2>👤 Cadastro Rápido de Cliente</h2>
-                <form id="clientForm">
-                    <div class="form-row">
-                        <div class="form-group"><label>Nome *</label><input type="text" id="clientName" required placeholder="Nome completo"></div>
-                        <div class="form-group"><label>Telefone (WhatsApp)</label><input type="text" id="clientPhone" placeholder="(00) 00000-0000"></div>
-                        <div class="form-group"><label>Recorrência</label>
-                            <select id="clientRecurrence"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso</option></select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">💾 Cadastrar Cliente</button>
-                </form>
-            </div>
-        </div>
-        <!-- CLIENTES -->
-        <div id="tab-clientes" class="tab-content">
-            <div class="table-wrapper">
-                <div class="table-header"><h3>👥 Clientes Cadastrados</h3><input type="text" class="search-box" placeholder="🔍 Buscar cliente..." id="clientSearch"></div>
-                <table><thead><tr><th>Nome</th><th>Telefone</th><th>Recorrência</th><th>Pedidos</th><th>Último Pedido</th><th>Status</th><th>Ações</th></tr></thead><tbody id="clientsBody"></tbody></table>
-            </div>
-        </div>
-        <!-- PEDIDOS -->
-        <div id="tab-pedidos" class="tab-content">
-            <div class="filter-bar">
-                <label>📅 Mês:</label><input type="month" id="filterMonth">
-                <label>👤 Cliente:</label><select id="filterClient"><option value="">Todos</option></select>
-                <button class="btn btn-secondary btn-sm" onclick="clearFilters()">Limpar Filtros</button>
-            </div>
-            <div class="table-wrapper">
-                <div class="table-header"><h3>📋 Pedidos</h3><div><span id="ordersSummary" style="font-size:0.85rem;color:var(--text-light);margin-right:16px;"></span><input type="text" class="search-box" placeholder="🔍 Buscar..." id="orderSearch" style="width:200px"></div></div>
-                <table><thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="ordersBody"></tbody></table>
-            </div>
-        </div>
-        <!-- RECORRENCIA -->
-        <div id="tab-recorrencia" class="tab-content">
-            <div class="filter-bar"><label>📅 Mês de referência:</label><input type="month" id="recurrenceMonth"></div>
-            <div class="stats-grid" id="recurrenceStats"></div>
-            <div class="table-wrapper">
-                <div class="table-header"><h3>🔄 Status de Recorrência dos Clientes</h3></div>
-                <table><thead><tr><th>Cliente</th><th>Recorrência</th><th>Último Pedido</th><th>Status</th><th>Total (R$)</th><th>Ação</th></tr></thead><tbody id="recurrenceBody"></tbody></table>
-            </div>
-        </div>
-        <!-- RETENCAO -->
-        <div id="tab-retencao" class="tab-content">
-            <div id="retentionAlertBox"></div>
-            <div class="stats-grid" id="retentionStats"></div>
-            <div id="retentionList"></div>
-        </div>
-        <!-- MENSAGEM WHATSAPP -->
-        <div id="tab-mensagem" class="tab-content">
-            <div class="form-card">
-                <h2>💬 Mensagem Padrão do WhatsApp</h2>
-                <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:16px;">Personalize a mensagem que será enviada aos clientes pelo WhatsApp. Use as variáveis abaixo clicando nelas para inserir no texto:</p>
-                <div style="margin-bottom:16px;">
-                    <span style="font-size:0.8rem;color:var(--text-light);margin-right:8px;">Variáveis disponíveis:</span>
-                    <span class="var-tag" onclick="insertVar('{nome}')">{nome}</span>
-                    <span class="var-tag" onclick="insertVar('{telefone}')">{telefone}</span>
-                    <span class="var-tag" onclick="insertVar('{recorrencia}')">{recorrencia}</span>
-                    <span class="var-tag" onclick="insertVar('{ultimo_pedido}')">{ultimo_pedido}</span>
-                </div>
-                <div class="form-group">
-                    <label>Mensagem <span class="msg-saved-indicator" id="savedIndicator">✅ Salvo!</span></label>
-                    <textarea class="msg-textarea" id="whatsappMsg" placeholder="Digite sua mensagem aqui..."></textarea>
-                </div>
-                <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                    <button class="btn btn-primary" onclick="saveWhatsAppMsg()">💾 Salvar Mensagem</button>
-                    <button class="btn btn-secondary" onclick="resetWhatsAppMsg()">🔄 Restaurar Padrão</button>
-                    <button class="btn btn-warning" onclick="testWhatsAppMsg()">📱 Testar Mensagem</button>
-                </div>
-                <div class="msg-preview-label" style="margin-top:24px;">👁️ Pré-visualização (exemplo com nome "Maria")</div>
-                <div class="msg-preview" id="msgPreview"></div>
-            </div>
-            <div class="form-card">
-                <h2>📝 Dicas de uso</h2>
-                <ul style="color:var(--text-light);font-size:0.9rem;line-height:2;padding-left:20px;">
-                    <li><strong>{nome}</strong> — Será substituído pelo nome do cliente</li>
-                    <li><strong>{telefone}</strong> — Será substituído pelo telefone do cliente</li>
-                    <li><strong>{recorrencia}</strong> — Mostra a recorrência (semanal, mensal, etc.)</li>
-                    <li><strong>{ultimo_pedido}</strong> — Data do último pedido do cliente</li>
-                    <li>Use emojis para deixar a mensagem mais amigável! 😊💚🛒</li>
-                    <li>A mensagem será usada em <strong>todos</strong> os botões de WhatsApp do sistema</li>
-                </ul>
-            </div>
-        </div>
+    <div class="card">
+      <div class="card-head"><h3>🚦 Status dos pedidos do mês</h3></div>
+      <div class="card-pad"><div class="statusbar" id="statusBar"></div><div class="legend" id="statusLegend"></div></div>
     </div>
-    <!-- MODAL HISTORICO -->
-    <div class="modal-overlay" id="clientModal"><div class="modal"><h2><span id="modalClientName">Cliente</span><button class="modal-close" onclick="closeModal()">&times;</button></h2><div id="modalClientInfo" style="margin-bottom:16px;font-size:0.9rem;color:var(--text-light);"></div><h3 style="font-size:1rem;margin-bottom:12px;color:var(--accent);">Histórico de Pedidos</h3><div id="modalTimeline" class="client-timeline"></div></div></div>
-    <!-- MODAL EDITAR CLIENTE -->
-    <div class="modal-overlay" id="editClientModal"><div class="modal"><h2>✏️ Editar Cliente<button class="modal-close" onclick="closeEditClient()">&times;</button></h2>
-        <input type="hidden" id="editClientId">
-        <div class="form-row"><div class="form-group"><label>Nome</label><input type="text" id="editClientName"></div><div class="form-group"><label>Telefone</label><input type="text" id="editClientPhone"></div><div class="form-group"><label>Recorrência</label><select id="editClientRecurrence"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso</option></select></div></div>
-        <div style="margin-top:16px;display:flex;gap:10px;"><button class="btn btn-primary" onclick="saveEditClient()">💾 Salvar</button><button class="btn btn-secondary" onclick="closeEditClient()">Cancelar</button></div>
+    <div class="card">
+      <div class="card-head"><h3>🧾 Últimos pedidos</h3><button class="btn btn-ghost btn-sm" onclick="switchTab('pedidos')">Ver todos →</button></div>
+      <div class="table-scroll"><table><thead><tr><th>Cliente</th><th>Data</th><th>Valor</th><th>Status</th><th>Observação</th></tr></thead><tbody id="recentBody"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- NOVO PEDIDO -->
+  <section id="v-novo-pedido" class="view">
+    <div class="section-head"><div><h2>➕ Registrar Pedido</h2><p>Lance um novo pedido. Cliente novo é cadastrado automaticamente.</p></div></div>
+    <div class="card"><div class="card-pad">
+      <form id="orderForm">
+        <div class="form-row">
+          <div class="fg"><label>Cliente *</label><input type="text" id="oClient" list="clientList" required placeholder="Digite ou escolha" autocomplete="off"><datalist id="clientList"></datalist><span class="hint">Comece a digitar para buscar clientes existentes</span></div>
+          <div class="fg"><label>Telefone (WhatsApp)</label><input type="text" id="oPhone" placeholder="(00) 00000-0000" inputmode="numeric"></div>
+        </div>
+        <div class="form-row">
+          <div class="fg"><label>Data do pedido *</label><input type="date" id="oDate" required></div>
+          <div class="fg"><label>Valor (R$) *</label><input type="number" id="oValue" step="0.01" min="0" required placeholder="0,00" inputmode="decimal"></div>
+          <div class="fg"><label>Status</label><select id="oStatus"><option value="pendente">⏳ Pendente</option><option value="entregue">📦 Entregue</option><option value="pago">✅ Pago</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="fg"><label>Recorrência do cliente</label><select id="oRec"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso (sem recorrência)</option></select></div>
+          <div class="fg" style="grid-column:span 2"><label>Observação / itens</label><textarea id="oObs" rows="2" placeholder="Itens, detalhes de entrega, etc."></textarea></div>
+        </div>
+        <button type="submit" class="btn btn-primary" id="orderSubmit">✅ Salvar pedido</button>
+      </form>
     </div></div>
-    <!-- MODAL EDITAR PEDIDO -->
-    <div class="modal-overlay" id="editOrderModal"><div class="modal"><h2>✏️ Editar Pedido<button class="modal-close" onclick="closeEditOrder()">&times;</button></h2>
-        <input type="hidden" id="editOrderId">
-        <div class="form-row"><div class="form-group"><label>Cliente</label><input type="text" id="editOrderClient" readonly style="background:#f0f0f0;"></div><div class="form-group"><label>Data</label><input type="date" id="editOrderDate"></div></div>
-        <div class="form-row"><div class="form-group"><label>Valor (R$)</label><input type="number" id="editOrderValue" step="0.01" min="0"></div><div class="form-group"><label>Observação</label><textarea id="editOrderObs" rows="2"></textarea></div></div>
-        <div style="margin-top:16px;display:flex;gap:10px;"><button class="btn btn-primary" onclick="saveEditOrder()">💾 Salvar</button><button class="btn btn-secondary" onclick="closeEditOrder()">Cancelar</button></div>
+    <div class="card"><div class="card-head"><h3>👤 Cadastro rápido de cliente</h3></div><div class="card-pad">
+      <form id="clientForm">
+        <div class="form-row">
+          <div class="fg"><label>Nome *</label><input type="text" id="cName" required placeholder="Nome completo"></div>
+          <div class="fg"><label>Telefone (WhatsApp)</label><input type="text" id="cPhone" placeholder="(00) 00000-0000" inputmode="numeric"></div>
+          <div class="fg"><label>Recorrência</label><select id="cRec"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso</option></select></div>
+        </div>
+        <button type="submit" class="btn btn-primary">💾 Cadastrar cliente</button>
+      </form>
     </div></div>
-    <div class="toast" id="toast"></div>
+  </section>
+
+  <!-- PEDIDOS -->
+  <section id="v-pedidos" class="view">
+    <div class="section-head"><div><h2>📋 Pedidos</h2><p>Filtre, ordene e gerencie todos os pedidos</p></div>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">📊 Exportar CSV</button></div>
+    <div class="filters">
+      <div class="filters-grid">
+        <div class="fg"><label>Mês</label><input type="month" id="fMonth"></div>
+        <div class="fg"><label>Cliente</label><select id="fClient"><option value="">Todos</option></select></div>
+        <div class="fg"><label>Valor mín. (R$)</label><input type="number" id="fMin" min="0" step="0.01" placeholder="0"></div>
+        <div class="fg"><label>Valor máx. (R$)</label><input type="number" id="fMax" min="0" step="0.01" placeholder="∞"></div>
+        <div class="fg"><label>Ordenar por</label><select id="fSort">
+          <option value="date-desc">Data (mais recente)</option><option value="date-asc">Data (mais antiga)</option>
+          <option value="value-desc">Valor (maior)</option><option value="value-asc">Valor (menor)</option>
+          <option value="name-asc">Cliente (A-Z)</option><option value="name-desc">Cliente (Z-A)</option>
+        </select></div>
+      </div>
+      <div class="chips" id="statusChips">
+        <span style="font-size:.78rem;color:var(--muted);font-weight:600;margin-right:2px">Status:</span>
+        <button class="chip active" data-st="">Todos</button>
+        <button class="chip c-pendente" data-st="pendente">⏳ Pendente</button>
+        <button class="chip c-entregue" data-st="entregue">📦 Entregue</button>
+        <button class="chip c-pago" data-st="pago">✅ Pago</button>
+      </div>
+      <div class="filters-foot">
+        <div class="search"><input type="text" id="fSearch" placeholder="Buscar cliente ou observação..."></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span class="result-summary" id="ordersSummary"></span>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Limpar</button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-scroll"><table>
+        <thead><tr>
+          <th class="sortable" data-sort="name">Cliente <span class="arr">↕</span></th>
+          <th class="sortable" data-sort="date">Data <span class="arr">↕</span></th>
+          <th class="sortable" data-sort="value">Valor <span class="arr">↕</span></th>
+          <th>Status</th><th>Observação</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="ordersBody"></tbody>
+      </table></div>
+      <div id="ordersPager"></div>
+    </div>
+  </section>
+
+  <!-- CLIENTES -->
+  <section id="v-clientes" class="view">
+    <div class="section-head"><div><h2>👥 Clientes</h2><p id="clientsSub">Sua base de clientes</p></div>
+      <div class="search"><input type="text" id="cSearch" placeholder="Buscar cliente..."></div></div>
+    <div class="card">
+      <div class="table-scroll"><table>
+        <thead><tr>
+          <th class="sortable" data-csort="name">Nome <span class="arr">↕</span></th>
+          <th>Telefone</th><th>Recorrência</th>
+          <th class="sortable" data-csort="orders">Pedidos <span class="arr">↕</span></th>
+          <th class="sortable" data-csort="total">Total gasto <span class="arr">↕</span></th>
+          <th>Último pedido</th><th>Status</th><th>Ações</th>
+        </tr></thead>
+        <tbody id="clientsBody"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- RECORRENCIA -->
+  <section id="v-recorrencia" class="view">
+    <div class="section-head"><div><h2>🔄 Recorrência</h2><p>Quem já pediu e quem está pendente no mês</p></div>
+      <div class="fg" style="min-width:160px"><label style="font-size:.72rem;text-transform:uppercase;color:var(--muted)">Mês de referência</label><input type="month" id="recMonth"></div></div>
+    <div class="stats" id="recStats"></div>
+    <div class="card">
+      <div class="card-head"><h3>Status de recorrência</h3></div>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Cliente</th><th>Recorrência</th><th>Último pedido</th><th>Status</th><th>Total no mês</th><th>Ação</th></tr></thead>
+        <tbody id="recBody"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- RETENCAO -->
+  <section id="v-retencao" class="view">
+    <div class="section-head"><div><h2>🚨 Retenção</h2><p>Clientes que passaram do prazo da recorrência</p></div></div>
+    <div id="retAlert"></div>
+    <div class="stats" id="retStats"></div>
+    <div id="retList"></div>
+  </section>
+
+  <!-- MENSAGEM -->
+  <section id="v-mensagem" class="view">
+    <div class="section-head"><div><h2>💬 Mensagem do WhatsApp</h2><p>Modelo usado em todos os botões de WhatsApp do sistema</p></div></div>
+    <div class="card"><div class="card-pad">
+      <p class="muted" style="font-size:.9rem;margin-bottom:14px">Clique nas variáveis para inserir no texto:</p>
+      <div style="margin-bottom:14px">
+        <span class="var-tag" onclick="insertVar('{nome}')">{nome}</span>
+        <span class="var-tag" onclick="insertVar('{telefone}')">{telefone}</span>
+        <span class="var-tag" onclick="insertVar('{recorrencia}')">{recorrencia}</span>
+        <span class="var-tag" onclick="insertVar('{ultimo_pedido}')">{ultimo_pedido}</span>
+      </div>
+      <div class="fg"><label>Mensagem <span class="saved-ind" id="savedInd">✅ Salvo!</span></label>
+        <textarea class="msg-ta" id="waMsg" placeholder="Digite sua mensagem..."></textarea></div>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="saveWaMsg()">💾 Salvar</button>
+        <button class="btn btn-ghost" onclick="resetWaMsg()">🔄 Restaurar padrão</button>
+        <button class="btn btn-wa" onclick="testWaMsg()">📱 Testar</button>
+      </div>
+      <div style="margin-top:22px"><div class="muted" style="font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">👁️ Pré-visualização (exemplo: Maria)</div>
+        <div class="msg-preview" id="msgPreview"></div></div>
+    </div></div>
+    <div class="card"><div class="card-head"><h3>📝 Dicas</h3></div><div class="card-pad"><ul class="tips" style="list-style:none">
+      <li>• <b>{nome}</b> — nome do cliente</li>
+      <li>• <b>{telefone}</b> — telefone do cliente</li>
+      <li>• <b>{recorrencia}</b> — recorrência (semanal, mensal...)</li>
+      <li>• <b>{ultimo_pedido}</b> — data do último pedido</li>
+      <li>• Use emojis para deixar a mensagem mais amigável 😊💚🛒</li>
+    </ul></div></div>
+  </section>
+</main>
+
+<!-- MODAL: histórico cliente -->
+<div class="overlay" id="mClient"><div class="modal"><div class="modal-head"><h2 id="mClientName">Cliente</h2><button class="modal-x" onclick="closeM('mClient')">×</button></div>
+  <div class="modal-body"><div class="client-info-bar" id="mClientInfo"></div><div id="mTimeline"></div></div></div></div>
+
+<!-- MODAL: editar cliente -->
+<div class="overlay" id="mEditClient"><div class="modal"><div class="modal-head"><h2>✏️ Editar cliente</h2><button class="modal-x" onclick="closeM('mEditClient')">×</button></div>
+  <div class="modal-body"><input type="hidden" id="ecId">
+    <div class="form-row"><div class="fg"><label>Nome</label><input type="text" id="ecName"></div><div class="fg"><label>Telefone</label><input type="text" id="ecPhone" inputmode="numeric"></div></div>
+    <div class="form-row"><div class="fg"><label>Recorrência</label><select id="ecRec"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso</option></select></div></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('mEditClient')">Cancelar</button><button class="btn btn-primary" onclick="saveEditClient()">💾 Salvar</button></div></div></div>
+
+<!-- MODAL: editar pedido -->
+<div class="overlay" id="mEditOrder"><div class="modal"><div class="modal-head"><h2>✏️ Editar pedido</h2><button class="modal-x" onclick="closeM('mEditOrder')">×</button></div>
+  <div class="modal-body"><input type="hidden" id="eoId">
+    <div class="form-row"><div class="fg"><label>Cliente</label><input type="text" id="eoClient" readonly style="background:var(--surface-2)"></div><div class="fg"><label>Data</label><input type="date" id="eoDate"></div></div>
+    <div class="form-row"><div class="fg"><label>Valor (R$)</label><input type="number" id="eoValue" step="0.01" min="0"></div><div class="fg"><label>Status</label><select id="eoStatus"><option value="pendente">⏳ Pendente</option><option value="entregue">📦 Entregue</option><option value="pago">✅ Pago</option></select></div></div>
+    <div class="form-row"><div class="fg"><label>Observação</label><textarea id="eoObs" rows="2"></textarea></div></div>
+  </div>
+  <div class="modal-foot"><button class="btn btn-ghost" onclick="closeM('mEditOrder')">Cancelar</button><button class="btn btn-primary" onclick="saveEditOrder()">💾 Salvar</button></div></div></div>
+
+<!-- MODAL: confirm -->
+<div class="overlay" id="mConfirm"><div class="modal confirm"><div class="modal-body"><div class="ic" id="cfIc">⚠️</div><div class="ttl" id="cfTitle">Confirmar</div><p id="cfMsg"></p></div>
+  <div class="modal-foot"><button class="btn btn-ghost" id="cfNo">Cancelar</button><button class="btn btn-danger" id="cfYes">Confirmar</button></div></div></div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
 <script>
-const API = '/api';
-let _clients = [], _orders = [];
+const API='/api';
+let _clients=[],_orders=[];
+let ordersSort={key:'date',dir:'desc'}, clientsSort={key:'name',dir:'asc'};
+let ordersPage=1; const PAGE_SIZE=20;
+let filterStatus='';
+const STATUS={pendente:{l:'Pendente',e:'⏳'},entregue:{l:'Entregue',e:'📦'},pago:{l:'Pago',e:'✅'}};
 
-// ==================== API ====================
-async function api(path, opts = {}) {
-    const res = await fetch(API + path, { headers:{'Content-Type':'application/json'}, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
-    if (!res.ok) { const e = await res.json().catch(()=>({error:res.statusText})); throw new Error(e.error||'Erro no servidor'); }
-    return res.json();
+/* ---------- API ---------- */
+async function api(path,opts={}){
+  const res=await fetch(API+path,{headers:{'Content-Type':'application/json'},...opts,body:opts.body?JSON.stringify(opts.body):undefined});
+  if(!res.ok){const e=await res.json().catch(()=>({error:res.statusText}));throw new Error(e.error||'Erro no servidor');}
+  return res.json();
 }
-async function refreshData() { [_clients, _orders] = await Promise.all([api('/clients'), api('/orders')]); }
+async function refreshData(){[_clients,_orders]=await Promise.all([api('/clients'),api('/orders')]);}
 
-// ==================== TOAST / LOADING ====================
-function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
-function showLoading() { document.getElementById('loadingOverlay').classList.add('active'); }
-function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
-
-// ==================== TABS ====================
-function switchTab(tab) {
-    document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
-    document.getElementById('tab-'+tab).classList.add('active');
-    document.querySelector(`.nav-tab[data-tab="${tab}"]`).classList.add('active');
-    renderCurrentTab(tab);
-}
-function renderCurrentTab(tab) {
-    if(tab==='dashboard') renderDashboard();
-    if(tab==='clientes') renderClients();
-    if(tab==='pedidos'){populateFilterClient();renderOrders();}
-    if(tab==='recorrencia') renderRecurrence();
-    if(tab==='retencao') renderRetention();
-    if(tab==='mensagem') renderMsgPreview();
-    if(tab==='novo-pedido') populateClientDatalist();
-}
-function refreshAllViews() {
-    const activeTab = document.querySelector('.nav-tab.active');
-    if(activeTab) renderCurrentTab(activeTab.dataset.tab);
-    updateRetentionBadge();
+/* ---------- Toast ---------- */
+function toast(msg,type='ok'){
+  const w=document.getElementById('toastWrap');
+  const ic={ok:'✅',err:'⚠️',warn:'⚠️',info:'ℹ️'}[type]||'';
+  const t=document.createElement('div');t.className='toast '+type;t.innerHTML=`<span>${ic}</span><span>${msg}</span>`;
+  w.appendChild(t);
+  setTimeout(()=>{t.classList.add('hide');setTimeout(()=>t.remove(),300);},3200);
 }
 
-// ==================== CLIENT CRUD ====================
-async function saveClient(e) {
-    e.preventDefault();
-    const name=document.getElementById('clientName').value.trim();
-    const phone=document.getElementById('clientPhone').value.trim();
-    const recurrence=document.getElementById('clientRecurrence').value;
-    if(!name){showToast('⚠️ Nome é obrigatório');return;}
-    try {
-        await api('/clients',{method:'POST',body:{name,phone,recurrence}});
-        await refreshData();
-        document.getElementById('clientForm').reset();
-        showToast('✅ Cliente cadastrado!');
-        refreshAllViews();
-    } catch(e){showToast('⚠️ '+e.message);}
+/* ---------- Confirm dialog ---------- */
+let _cfResolve=null;
+function confirmDialog(message,{title='Confirmar',icon='⚠️',yes='Confirmar',danger=true}={}){
+  document.getElementById('cfTitle').textContent=title;
+  document.getElementById('cfMsg').textContent=message;
+  document.getElementById('cfIc').textContent=icon;
+  const yesBtn=document.getElementById('cfYes');
+  yesBtn.textContent=yes;yesBtn.className='btn '+(danger?'btn-danger':'btn-primary');
+  openM('mConfirm');
+  return new Promise(r=>{_cfResolve=r;});
 }
-async function deleteClient(id) {
-    if(!confirm('Excluir este cliente e todos os seus pedidos?')) return;
-    try { await api('/clients/'+id,{method:'DELETE'}); await refreshData(); showToast('🗑️ Cliente excluído!'); refreshAllViews(); }
-    catch(e){showToast('⚠️ '+e.message);}
-}
-function openEditClient(id) {
-    const c=_clients.find(x=>x.id===id); if(!c) return;
-    document.getElementById('editClientId').value=c.id;
-    document.getElementById('editClientName').value=c.name;
-    document.getElementById('editClientPhone').value=c.phone||'';
-    document.getElementById('editClientRecurrence').value=c.recurrence||'mensal';
-    document.getElementById('editClientModal').classList.add('active');
-}
-function closeEditClient(){document.getElementById('editClientModal').classList.remove('active');}
-async function saveEditClient() {
-    const id=document.getElementById('editClientId').value;
-    const name=document.getElementById('editClientName').value.trim();
-    const phone=document.getElementById('editClientPhone').value.trim();
-    const recurrence=document.getElementById('editClientRecurrence').value;
-    if(!name){showToast('⚠️ Nome é obrigatório');return;}
-    try { await api('/clients/'+id,{method:'PUT',body:{name,phone,recurrence}}); await refreshData(); closeEditClient(); showToast('✅ Cliente atualizado!'); refreshAllViews(); }
-    catch(e){showToast('⚠️ '+e.message);}
-}
-function renderClients(search) {
-    search = search || (document.getElementById('clientSearch')?.value||'');
-    const tbody=document.getElementById('clientsBody');
-    let filtered=_clients;
-    if(search) filtered=_clients.filter(c=>c.name.toLowerCase().includes(search.toLowerCase())||((c.phone||'').includes(search)));
-    if(!filtered.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="icon">👥</div>Nenhum cliente encontrado</div></td></tr>';return;}
-    tbody.innerHTML=filtered.map(c=>{
-        const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase());
-        const last=[...co].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
-        const status=getRecurrenceStatus(c,co);
-        return `<tr>
-            <td><strong style="cursor:pointer;color:var(--primary-dark)" onclick="openClientModal('${c.id}')">${c.name}</strong></td>
-            <td>${c.phone||'-'}</td>
-            <td><span class="badge badge-info">${c.recurrence}</span></td>
-            <td>${co.length}</td>
-            <td>${last?formatDate(last.date):'-'}</td>
-            <td>${status}</td>
-            <td class="actions-cell">
-                <button class="btn btn-warning btn-sm" onclick="openEditClient('${c.id}')">✏️</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')">🗑️</button>
-                ${c.phone?`<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}','${c.name}')">💬</button>`:''}
-            </td></tr>`;
-    }).join('');
-}
-function populateClientDatalist(){document.getElementById('clientList').innerHTML=_clients.map(c=>`<option value="${c.name}">`).join('');}
+document.getElementById('cfYes').onclick=()=>{closeM('mConfirm');if(_cfResolve)_cfResolve(true);};
+document.getElementById('cfNo').onclick=()=>{closeM('mConfirm');if(_cfResolve)_cfResolve(false);};
 
-// ==================== AUTO-FILL PHONE ON CLIENT SELECT ====================
-function setupAutoFill() {
-    const clientInput=document.getElementById('orderClient');
-    clientInput.addEventListener('change',function(){
-        const c=_clients.find(x=>x.name.toLowerCase()===this.value.trim().toLowerCase());
-        if(c){
-            if(c.phone) document.getElementById('orderPhone').value=c.phone;
-            document.getElementById('orderRecurrence').value=c.recurrence||'mensal';
-        }
-    });
+/* ---------- Modal helpers ---------- */
+function openM(id){document.getElementById(id).classList.add('active');}
+function closeM(id){document.getElementById(id).classList.remove('active');}
+
+/* ---------- Tabs ---------- */
+function switchTab(tab){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('v-'+tab).classList.add('active');
+  document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  renderTab(tab);
+}
+function renderTab(tab){
+  if(tab==='dashboard')renderDashboard();
+  else if(tab==='novo-pedido')fillClientDatalist();
+  else if(tab==='pedidos'){fillClientFilter();renderOrders();}
+  else if(tab==='clientes')renderClients();
+  else if(tab==='recorrencia')renderRecurrence();
+  else if(tab==='retencao')renderRetention();
+  else if(tab==='mensagem')renderMsgPreview();
+}
+function refreshAll(){
+  const active=document.querySelector('.tab.active');
+  if(active)renderTab(active.dataset.tab);
+  updateRetBadge();fillClientDatalist();
 }
 
-// ==================== ORDER CRUD ====================
-async function saveOrder(e) {
-    e.preventDefault();
-    const client_name=document.getElementById('orderClient').value.trim();
-    const phone=document.getElementById('orderPhone').value.trim();
-    const date=document.getElementById('orderDate').value;
-    const value=parseFloat(document.getElementById('orderValue').value);
-    const recurrence=document.getElementById('orderRecurrence').value;
-    const obs=document.getElementById('orderObs').value.trim();
-    if(!client_name){showToast('⚠️ Nome do cliente é obrigatório');return;}
-    if(!date){showToast('⚠️ Data é obrigatória');return;}
-    if(isNaN(value)||value<0){showToast('⚠️ Valor inválido');return;}
-    try {
-        await api('/orders',{method:'POST',body:{client_name,date,value,obs,phone,recurrence}});
-        await refreshData();
-        document.getElementById('orderForm').reset();
-        document.getElementById('orderDate').value=new Date().toISOString().split('T')[0];
-        showToast('✅ Pedido registrado!');
-        refreshAllViews();
-    } catch(e){showToast('⚠️ '+e.message);}
-}
-async function deleteOrder(id) {
-    if(!confirm('Excluir este pedido?')) return;
-    try { await api('/orders/'+id,{method:'DELETE'}); await refreshData(); showToast('🗑️ Pedido excluído!'); refreshAllViews(); }
-    catch(e){showToast('⚠️ '+e.message);}
-}
-function openEditOrder(id) {
-    const o=_orders.find(x=>x.id===id); if(!o) return;
-    document.getElementById('editOrderId').value=o.id;
-    document.getElementById('editOrderClient').value=o.client_name;
-    document.getElementById('editOrderDate').value=o.date;
-    document.getElementById('editOrderValue').value=o.value;
-    document.getElementById('editOrderObs').value=o.obs||'';
-    document.getElementById('editOrderModal').classList.add('active');
-}
-function closeEditOrder(){document.getElementById('editOrderModal').classList.remove('active');}
-async function saveEditOrder() {
-    const id=document.getElementById('editOrderId').value;
-    const date=document.getElementById('editOrderDate').value;
-    const value=parseFloat(document.getElementById('editOrderValue').value);
-    const obs=document.getElementById('editOrderObs').value.trim();
-    if(!date){showToast('⚠️ Data obrigatória');return;}
-    if(isNaN(value)){showToast('⚠️ Valor inválido');return;}
-    try {
-        await api('/orders/'+id,{method:'PUT',body:{date,value,obs}});
-        await refreshData(); closeEditOrder(); showToast('✅ Pedido atualizado!'); refreshAllViews();
-    } catch(e){showToast('⚠️ '+e.message);}
-}
-function renderOrders() {
-    const tbody=document.getElementById('ordersBody');
-    const mf=document.getElementById('filterMonth').value;
-    const cf=document.getElementById('filterClient').value;
-    const search=(document.getElementById('orderSearch')?.value||'').toLowerCase();
-    let filtered=[..._orders];
-    if(mf) filtered=filtered.filter(o=>o.date&&o.date.startsWith(mf));
-    if(cf) filtered=filtered.filter(o=>o.client_name.toLowerCase()===cf.toLowerCase());
-    if(search) filtered=filtered.filter(o=>o.client_name.toLowerCase().includes(search)||(o.obs&&o.obs.toLowerCase().includes(search)));
-    filtered.sort((a,b)=>new Date(b.date)-new Date(a.date));
-    const total=filtered.reduce((s,o)=>s+(o.value||0),0);
-    document.getElementById('ordersSummary').textContent=`${filtered.length} pedido(s) | Total: R$ ${total.toFixed(2)}`;
-    if(!filtered.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><div class="icon">📋</div>Nenhum pedido encontrado</div></td></tr>';return;}
-    tbody.innerHTML=filtered.map(o=>`<tr>
-        <td><strong>${o.client_name}</strong></td>
-        <td>${formatDate(o.date)}</td>
-        <td><strong>R$ ${(o.value||0).toFixed(2)}</strong></td>
-        <td>${o.obs||'-'}</td>
-        <td class="actions-cell">
-            <button class="btn btn-warning btn-sm" onclick="openEditOrder('${o.id}')">✏️</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')">🗑️</button>
-        </td></tr>`).join('');
-}
-function populateFilterClient(){
-    const sel=document.getElementById('filterClient');
-    const cur=sel.value;
-    sel.innerHTML='<option value="">Todos</option>'+_clients.map(c=>`<option value="${c.name}" ${c.name===cur?'selected':''}>${c.name}</option>`).join('');
-}
-function clearFilters(){document.getElementById('filterMonth').value='';document.getElementById('filterClient').value='';document.getElementById('orderSearch').value='';renderOrders();}
+/* ---------- Helpers ---------- */
+function fmtBRL(v){return (v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function fmtDate(ds){if(!ds||ds==='-')return '-';const p=(ds||'').split('T')[0].split('-');return p.length===3?`${p[2]}/${p[1]}/${p[0]}`:ds;}
+function monthName(i){return['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][i];}
+function monthFull(i){return['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][i];}
+function curMonth(){const n=new Date();return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function ordersOf(name){return _orders.filter(o=>(o.client_name||'').toLowerCase()===name.toLowerCase());}
+function st(o){return o.status||'pendente';}
+function debounce(fn,ms=220){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
 
-// ==================== DASHBOARD ====================
-function renderDashboard() {
-    const now=new Date();
-    const cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    const mo=_orders.filter(o=>o.date&&o.date.startsWith(cm));
-    const mt=mo.reduce((s,o)=>s+(o.value||0),0);
-    const ta=_orders.reduce((s,o)=>s+(o.value||0),0);
-    const rc=_clients.filter(c=>c.recurrence!=='avulso');
-    const pc=rc.filter(c=>!mo.find(o=>o.client_name.toLowerCase()===c.name.toLowerCase()));
-    const ret=getRetentionClients().length;
-    document.getElementById('statsGrid').innerHTML=`
-        <div class="stat-card"><div class="stat-label">Pedidos este mês</div><div class="stat-value">${mo.length}</div><div class="stat-sub">${getMonthName(now.getMonth())} ${now.getFullYear()}</div></div>
-        <div class="stat-card"><div class="stat-label">Faturamento do mês</div><div class="stat-value">R$ ${mt.toFixed(2)}</div><div class="stat-sub">Média: R$ ${mo.length?(mt/mo.length).toFixed(2):'0.00'} por pedido</div></div>
-        <div class="stat-card accent"><div class="stat-label">Total de clientes</div><div class="stat-value">${_clients.length}</div><div class="stat-sub">${rc.length} com recorrência</div></div>
-        <div class="stat-card ${pc.length>0?'warning':''}"><div class="stat-label">⚠️ Clientes pendentes</div><div class="stat-value">${pc.length}</div><div class="stat-sub">Não pediram este mês</div></div>
-        <div class="stat-card ${ret>0?'danger':''}" style="cursor:pointer" onclick="switchTab('retencao')"><div class="stat-label">🚨 Retenção</div><div class="stat-value">${ret}</div><div class="stat-sub">${ret>0?'Clientes passaram do prazo!':'Todos em dia ✅'}</div></div>
-        <div class="stat-card danger"><div class="stat-label">Faturamento total</div><div class="stat-value">R$ ${ta.toFixed(2)}</div><div class="stat-sub">${_orders.length} pedidos no total</div></div>`;
-    updateRetentionBadge();
-    const recent=[..._orders].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
-    const tbody=document.getElementById('recentOrdersBody');
-    if(!recent.length){tbody.innerHTML='<tr><td colspan="4"><div class="empty-state"><div class="icon">📦</div>Nenhum pedido ainda.<br>Comece adicionando um pedido!</div></td></tr>';return;}
-    tbody.innerHTML=recent.map(o=>`<tr><td><strong>${o.client_name}</strong></td><td>${formatDate(o.date)}</td><td><strong>R$ ${(o.value||0).toFixed(2)}</strong></td><td>${o.obs||'-'}</td></tr>`).join('');
+/* ---------- Skeleton ---------- */
+function showSkeleton(){
+  document.getElementById('statsGrid').innerHTML=Array(6).fill('<div class="skeleton sk-stat"></div>').join('');
+  document.getElementById('recentBody').innerHTML=Array(5).fill('<tr><td colspan="5"><div class="skeleton sk-row"></div></td></tr>').join('');
 }
 
-// ==================== RECURRENCE ====================
-function renderRecurrence() {
-    const mi=document.getElementById('recurrenceMonth');
-    if(!mi.value){const n=new Date();mi.value=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;}
-    const rm=mi.value;
-    const rc=_clients.filter(c=>c.recurrence!=='avulso');
-    let pediu=0,naoPediu=0;
-    const rows=rc.map(c=>{
-        const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase());
-        const mo=co.filter(o=>o.date&&o.date.startsWith(rm));
-        const last=[...co].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
-        const mt=mo.reduce((s,o)=>s+(o.value||0),0);
-        let sl,sc;
-        const [y,m]=rm.split('-').map(Number);
-        if(mo.length>0){sl='✅ Pediu';sc='badge-success';pediu++;}
-        else if(isWithinRecurrence(c.recurrence,last,y,m)){sl='⏳ Dentro da recorrência';sc='badge-warning';pediu++;}
-        else{sl='❌ Não pediu';sc='badge-danger';naoPediu++;}
-        return `<tr>
-            <td><strong style="cursor:pointer;color:var(--primary-dark)" onclick="openClientModal('${c.id}')">${c.name}</strong></td>
-            <td><span class="badge badge-info">${c.recurrence}</span></td>
-            <td>${last?formatDate(last.date):'Nunca'}</td>
-            <td><span class="badge ${sc}">${sl}</span></td>
-            <td><strong>R$ ${mt.toFixed(2)}</strong></td>
-            <td>${mo.length===0&&c.phone?`<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}','${c.name}')">💬 Lembrar</button>`:'-'}</td></tr>`;
-    });
-    document.getElementById('recurrenceStats').innerHTML=`
-        <div class="stat-card"><div class="stat-label">Total c/ Recorrência</div><div class="stat-value">${rc.length}</div></div>
-        <div class="stat-card"><div class="stat-label">✅ Em dia</div><div class="stat-value">${pediu}</div></div>
-        <div class="stat-card warning"><div class="stat-label">❌ Pendentes</div><div class="stat-value">${naoPediu}</div></div>`;
-    document.getElementById('recurrenceBody').innerHTML=rows.length?rows.join(''):'<tr><td colspan="6"><div class="empty-state"><div class="icon">🔄</div>Nenhum cliente com recorrência.</div></td></tr>';
+/* ==================== DASHBOARD ==================== */
+function renderDashboard(){
+  const cm=curMonth(),now=new Date();
+  const mo=_orders.filter(o=>o.date&&o.date.startsWith(cm));
+  const mt=mo.reduce((s,o)=>s+(o.value||0),0);
+  const ta=_orders.reduce((s,o)=>s+(o.value||0),0);
+  const rc=_clients.filter(c=>c.recurrence!=='avulso');
+  const pend=rc.filter(c=>!mo.find(o=>(o.client_name||'').toLowerCase()===c.name.toLowerCase()));
+  const ret=getRetention().length;
+  const aReceber=_orders.filter(o=>st(o)!=='pago').reduce((s,o)=>s+(o.value||0),0);
+  document.getElementById('dashSub').textContent=`${monthFull(now.getMonth())} de ${now.getFullYear()}`;
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat green"><div class="k">💰 Faturamento do mês</div><div class="v">${fmtBRL(mt)}</div><div class="s">${mo.length} pedido(s) · média ${fmtBRL(mo.length?mt/mo.length:0)}</div></div>
+    <div class="stat teal"><div class="k">📦 Pedidos no mês</div><div class="v">${mo.length}</div><div class="s">${_orders.length} no total (geral)</div></div>
+    <div class="stat blue"><div class="k">👥 Clientes</div><div class="v">${_clients.length}</div><div class="s">${rc.length} com recorrência</div></div>
+    <div class="stat amber click" onclick="switchTab('recorrencia')"><div class="k">⏳ A receber</div><div class="v">${fmtBRL(aReceber)}</div><div class="s">Pedidos não pagos</div></div>
+    <div class="stat ${pend.length?'amber':'green'} click" onclick="switchTab('recorrencia')"><div class="k">⚠️ Pendentes do mês</div><div class="v">${pend.length}</div><div class="s">Recorrentes que não pediram</div></div>
+    <div class="stat ${ret?'red':'green'} click" onclick="switchTab('retencao')"><div class="k">🚨 Em risco (retenção)</div><div class="v">${ret}</div><div class="s">${ret?'Passaram do prazo!':'Todos em dia ✅'}</div></div>`;
+  renderRevChart();renderTopClients();renderStatusBar(mo);
+  const recent=[..._orders].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,8);
+  const tb=document.getElementById('recentBody');
+  tb.innerHTML=recent.length?recent.map(o=>`<tr>
+    <td class="cell-name">${esc(o.client_name)}</td><td class="muted">${fmtDate(o.date)}</td>
+    <td class="cell-val">${fmtBRL(o.value)}</td><td>${statusBadge(st(o))}</td><td class="muted">${esc(o.obs)||'-'}</td></tr>`).join('')
+    :'<tr><td colspan="5"><div class="empty"><div class="ic">📦</div><h3>Nenhum pedido ainda</h3><p>Comece registrando seu primeiro pedido!</p></div></td></tr>';
+  updateRetBadge();
 }
-function isWithinRecurrence(rec,lastOrder,y,m){
-    if(!lastOrder)return false;
-    const last=new Date(lastOrder.date);
-    const ref=new Date(y,m-1,1);
-    const dm=(ref.getFullYear()-last.getFullYear())*12+(ref.getMonth()-last.getMonth());
-    switch(rec){case'semanal':return dm<=0;case'quinzenal':return dm<=0;case'mensal':return dm<=1;case'bimestral':return dm<=2;case'trimestral':return dm<=3;default:return false;}
+function statusBadge(s){const x=STATUS[s]||STATUS.pendente;return `<span class="badge b-${s}">${x.e} ${x.l}</span>`;}
+
+function renderRevChart(){
+  const now=new Date();const months=[];
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,m:d.getMonth(),y:d.getFullYear()});}
+  const data=months.map(mm=>({...mm,total:_orders.filter(o=>o.date&&o.date.startsWith(mm.key)).reduce((s,o)=>s+(o.value||0),0)}));
+  const max=Math.max(...data.map(d=>d.total),1);
+  document.getElementById('revChart').innerHTML=data.map(d=>{
+    const h=Math.max((d.total/max)*100,2);
+    return `<div class="col"><div class="bar" style="height:${h}%"><span class="tip">${fmtBRL(d.total)}</span></div>
+      <div class="lbl">${monthName(d.m)}<small>${String(d.y).slice(2)}</small></div></div>`;
+  }).join('');
 }
-function getRecurrenceStatus(client,orders){
-    const now=new Date();
-    const cm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-    const mo=orders.filter(o=>o.date&&o.date.startsWith(cm));
-    if(client.recurrence==='avulso')return '<span class="badge badge-info">Avulso</span>';
-    if(mo.length>0)return '<div class="recurrence-status"><span class="dot dot-green"></span> Em dia</div>';
-    const last=[...orders].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
-    if(isWithinRecurrence(client.recurrence,last,now.getFullYear(),now.getMonth()+1))return '<div class="recurrence-status"><span class="dot dot-yellow"></span> Dentro da recorrência</div>';
-    return '<div class="recurrence-status"><span class="dot dot-red"></span> Pendente</div>';
+function renderTopClients(){
+  const map={};
+  _orders.forEach(o=>{const k=o.client_name||'';map[k]=(map[k]||0)+(o.value||0);});
+  const top=Object.entries(map).map(([nm,vl])=>({nm,vl})).sort((a,b)=>b.vl-a.vl).slice(0,5);
+  const max=Math.max(...top.map(t=>t.vl),1);
+  const el=document.getElementById('topClients');
+  if(!top.length){el.innerHTML='<div class="empty"><div class="ic">🏆</div><p>Sem dados ainda</p></div>';return;}
+  el.innerHTML=top.map((t,i)=>`<div class="toprow"><div class="rk">${i+1}</div><div class="nm">${esc(t.nm)}</div><div class="vl">${fmtBRL(t.vl)}</div>
+    <div class="track"><div class="fill" style="width:${(t.vl/max)*100}%"></div></div></div>`).join('');
+}
+function renderStatusBar(list){
+  const c={pendente:0,entregue:0,pago:0};list.forEach(o=>c[st(o)]=(c[st(o)]||0)+1);
+  const tot=list.length||1;
+  const bar=document.getElementById('statusBar');
+  bar.innerHTML=['pendente','entregue','pago'].map(s=>{const p=(c[s]/tot)*100;return p>0?`<div class="seg ${s}" style="flex:${c[s]}" title="${STATUS[s].l}: ${c[s]}">${p>=12?c[s]:''}</div>`:'';}).join('')
+    ||'<div class="seg" style="flex:1;background:var(--line);color:var(--muted)">Sem pedidos no mês</div>';
+  document.getElementById('statusLegend').innerHTML=['pendente','entregue','pago'].map(s=>`<span><i style="background:var(--${s})"></i>${STATUS[s].e} ${STATUS[s].l}: <b>&nbsp;${c[s]}</b></span>`).join('');
 }
 
-// ==================== RETENTION ====================
-function getRecurrenceDays(r){switch(r){case'semanal':return 7;case'quinzenal':return 15;case'mensal':return 30;case'bimestral':return 60;case'trimestral':return 90;default:return 0;}}
-function getRetentionClients(){
-    const now=new Date();now.setHours(0,0,0,0);
-    const list=[];
-    _clients.forEach(c=>{
-        if(c.recurrence==='avulso')return;
-        const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase()).sort((a,b)=>new Date(b.date)-new Date(a.date));
-        const last=co[0];
-        const rd=getRecurrenceDays(c.recurrence);if(!rd)return;
-        let daysOverdue=0,lastDate=null;
-        if(!last){
-            const cr=new Date(c.created_at);cr.setHours(0,0,0,0);
-            const ds=Math.floor((now-cr)/(86400000));
-            if(ds>rd)daysOverdue=ds-rd;else return;
-        }else{
-            lastDate=new Date(last.date);lastDate.setHours(0,0,0,0);
-            const ds=Math.floor((now-lastDate)/(86400000));
-            if(ds>rd)daysOverdue=ds-rd;else return;
-        }
-        let urg,urgL;
-        if(daysOverdue>rd){urg='critical';urgL='🔴 Crítico';}
-        else if(daysOverdue>Math.floor(rd/2)){urg='high';urgL='🟠 Alto';}
-        else{urg='medium';urgL='🟡 Médio';}
-        list.push({client:c,lastOrder:last,lastDate,daysOverdue,rd,urg,urgL,totalOrders:co.length,totalSpent:co.reduce((s,o)=>s+(o.value||0),0)});
-    });
-    list.sort((a,b)=>{const u={critical:0,high:1,medium:2};return u[a.urg]!==u[b.urg]?u[a.urg]-u[b.urg]:b.daysOverdue-a.daysOverdue;});
-    return list;
+/* ==================== NOVO PEDIDO ==================== */
+function fillClientDatalist(){document.getElementById('clientList').innerHTML=_clients.map(c=>`<option value="${esc(c.name)}">`).join('');}
+async function saveOrder(e){
+  e.preventDefault();
+  const client_name=document.getElementById('oClient').value.trim();
+  const phone=document.getElementById('oPhone').value.trim();
+  const date=document.getElementById('oDate').value;
+  const value=parseFloat(document.getElementById('oValue').value);
+  const status=document.getElementById('oStatus').value;
+  const recurrence=document.getElementById('oRec').value;
+  const obs=document.getElementById('oObs').value.trim();
+  if(!client_name)return toast('Informe o cliente','warn');
+  if(!date)return toast('Informe a data','warn');
+  if(isNaN(value)||value<0)return toast('Valor inválido','warn');
+  const btn=document.getElementById('orderSubmit');const old=btn.innerHTML;btn.innerHTML='<span class="spinner"></span> Salvando...';btn.disabled=true;
+  try{
+    await api('/orders',{method:'POST',body:{client_name,date,value,obs,phone,recurrence,status}});
+    await refreshData();
+    document.getElementById('orderForm').reset();
+    document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
+    toast('Pedido registrado!','ok');refreshAll();
+  }catch(err){toast(err.message,'err');}
+  finally{btn.innerHTML=old;btn.disabled=false;}
+}
+async function saveClient(e){
+  e.preventDefault();
+  const name=document.getElementById('cName').value.trim();
+  const phone=document.getElementById('cPhone').value.trim();
+  const recurrence=document.getElementById('cRec').value;
+  if(!name)return toast('Informe o nome','warn');
+  try{await api('/clients',{method:'POST',body:{name,phone,recurrence}});await refreshData();
+    document.getElementById('clientForm').reset();toast('Cliente cadastrado!','ok');refreshAll();}
+  catch(err){toast(err.message,'err');}
+}
+function setupAutoFill(){
+  document.getElementById('oClient').addEventListener('change',function(){
+    const c=_clients.find(x=>x.name.toLowerCase()===this.value.trim().toLowerCase());
+    if(c){if(c.phone)document.getElementById('oPhone').value=c.phone;document.getElementById('oRec').value=c.recurrence||'mensal';}
+  });
+}
+
+/* ==================== PEDIDOS ==================== */
+function getFilteredOrders(){
+  const mf=document.getElementById('fMonth').value;
+  const cf=document.getElementById('fClient').value;
+  const mn=parseFloat(document.getElementById('fMin').value);
+  const mx=parseFloat(document.getElementById('fMax').value);
+  const q=(document.getElementById('fSearch').value||'').toLowerCase().trim();
+  let r=[..._orders];
+  if(mf)r=r.filter(o=>o.date&&o.date.startsWith(mf));
+  if(cf)r=r.filter(o=>(o.client_name||'').toLowerCase()===cf.toLowerCase());
+  if(filterStatus)r=r.filter(o=>st(o)===filterStatus);
+  if(!isNaN(mn))r=r.filter(o=>(o.value||0)>=mn);
+  if(!isNaN(mx))r=r.filter(o=>(o.value||0)<=mx);
+  if(q)r=r.filter(o=>(o.client_name||'').toLowerCase().includes(q)||(o.obs||'').toLowerCase().includes(q));
+  const [k,d]=document.getElementById('fSort').value.split('-');const mul=d==='asc'?1:-1;
+  r.sort((a,b)=>{
+    if(k==='date')return (new Date(a.date)-new Date(b.date))*mul;
+    if(k==='value')return ((a.value||0)-(b.value||0))*mul;
+    return (a.client_name||'').localeCompare(b.client_name||'')*mul;
+  });
+  return r;
+}
+function renderOrders(){
+  const all=getFilteredOrders();
+  const total=all.reduce((s,o)=>s+(o.value||0),0);
+  document.getElementById('ordersSummary').innerHTML=`<b>${all.length}</b> pedido(s) · <b>${fmtBRL(total)}</b>`;
+  const pages=Math.max(Math.ceil(all.length/PAGE_SIZE),1);
+  if(ordersPage>pages)ordersPage=pages;
+  const slice=all.slice((ordersPage-1)*PAGE_SIZE,ordersPage*PAGE_SIZE);
+  const tb=document.getElementById('ordersBody');
+  if(!all.length){tb.innerHTML='<tr><td colspan="6"><div class="empty"><div class="ic">📋</div><h3>Nenhum pedido encontrado</h3><p>Ajuste os filtros ou registre um novo pedido</p></div></td></tr>';document.getElementById('ordersPager').innerHTML='';return;}
+  tb.innerHTML=slice.map(o=>`<tr>
+    <td class="cell-name link" onclick="openClientByName('${esc(o.client_name)}')">${esc(o.client_name)}</td>
+    <td class="muted">${fmtDate(o.date)}</td>
+    <td class="cell-val">${fmtBRL(o.value)}</td>
+    <td><select class="status-sel s-${st(o)}" onchange="changeStatus('${o.id}',this.value)">
+      ${['pendente','entregue','pago'].map(s=>`<option value="${s}" ${st(o)===s?'selected':''}>${STATUS[s].e} ${STATUS[s].l}</option>`).join('')}
+    </select></td>
+    <td class="muted">${esc(o.obs)||'-'}</td>
+    <td><div class="row-actions">
+      <button class="btn-icon" title="Editar" onclick="openEditOrder('${o.id}')">✏️</button>
+      <button class="btn-icon danger" title="Excluir" onclick="deleteOrder('${o.id}')">🗑️</button>
+    </div></td></tr>`).join('');
+  renderPager(all.length,pages);
+  syncSortArrows('data-sort',ordersSort);
+}
+function renderPager(total,pages){
+  const el=document.getElementById('ordersPager');
+  if(pages<=1){el.innerHTML='';return;}
+  let btns='';
+  const add=(p,lbl,active,dis)=>btns+=`<button class="${active?'active':''}" ${dis?'disabled':''} onclick="goPage(${p})">${lbl||p}</button>`;
+  add(ordersPage-1,'‹',false,ordersPage===1);
+  const range=[];for(let i=Math.max(1,ordersPage-2);i<=Math.min(pages,ordersPage+2);i++)range.push(i);
+  if(range[0]>1){add(1);if(range[0]>2)btns+='<span class="info">…</span>';}
+  range.forEach(p=>add(p,null,p===ordersPage));
+  if(range[range.length-1]<pages){if(range[range.length-1]<pages-1)btns+='<span class="info">…</span>';add(pages);}
+  add(ordersPage+1,'›',false,ordersPage===pages);
+  el.innerHTML=`<div class="pager"><span class="info">Pág. ${ordersPage}/${pages} · ${total} itens</span>${btns}</div>`;
+}
+function goPage(p){ordersPage=p;renderOrders();document.getElementById('v-pedidos').scrollIntoView({behavior:'smooth'});}
+async function changeStatus(id,status){
+  try{await api('/orders/'+id,{method:'PUT',body:{status}});const o=_orders.find(x=>x.id===id);if(o)o.status=status;
+    toast(`Status: ${STATUS[status].e} ${STATUS[status].l}`,'ok');
+    const active=document.querySelector('.tab.active').dataset.tab;
+    if(active==='pedidos')renderOrders();else if(active==='dashboard')renderDashboard();else if(active==='clientes')renderClients();}
+  catch(err){toast(err.message,'err');await refreshData();renderOrders();}
+}
+async function deleteOrder(id){
+  if(!await confirmDialog('Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.',{title:'Excluir pedido',icon:'🗑️'}))return;
+  try{await api('/orders/'+id,{method:'DELETE'});await refreshData();toast('Pedido excluído','ok');refreshAll();}
+  catch(err){toast(err.message,'err');}
+}
+function openEditOrder(id){
+  const o=_orders.find(x=>x.id===id);if(!o)return;
+  document.getElementById('eoId').value=o.id;
+  document.getElementById('eoClient').value=o.client_name;
+  document.getElementById('eoDate').value=(o.date||'').split('T')[0];
+  document.getElementById('eoValue').value=o.value;
+  document.getElementById('eoStatus').value=st(o);
+  document.getElementById('eoObs').value=o.obs||'';
+  openM('mEditOrder');
+}
+async function saveEditOrder(){
+  const id=document.getElementById('eoId').value;
+  const date=document.getElementById('eoDate').value;
+  const value=parseFloat(document.getElementById('eoValue').value);
+  const status=document.getElementById('eoStatus').value;
+  const obs=document.getElementById('eoObs').value.trim();
+  if(!date)return toast('Informe a data','warn');
+  if(isNaN(value))return toast('Valor inválido','warn');
+  try{await api('/orders/'+id,{method:'PUT',body:{date,value,obs,status}});await refreshData();closeM('mEditOrder');toast('Pedido atualizado','ok');refreshAll();}
+  catch(err){toast(err.message,'err');}
+}
+function fillClientFilter(){
+  const sel=document.getElementById('fClient');const cur=sel.value;
+  sel.innerHTML='<option value="">Todos</option>'+_clients.map(c=>`<option value="${esc(c.name)}" ${c.name===cur?'selected':''}>${esc(c.name)}</option>`).join('');
+}
+function clearFilters(){
+  document.getElementById('fMonth').value='';document.getElementById('fClient').value='';
+  document.getElementById('fMin').value='';document.getElementById('fMax').value='';
+  document.getElementById('fSearch').value='';document.getElementById('fSort').value='date-desc';
+  filterStatus='';ordersSort={key:'date',dir:'desc'};ordersPage=1;
+  document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.st===''));
+  renderOrders();
+}
+function syncSortArrows(attr,state){
+  document.querySelectorAll(`th[${attr}]`).forEach(th=>{
+    const k=th.getAttribute(attr);const a=th.querySelector('.arr');
+    if(k===state.key){th.classList.add('sorted');a.textContent=state.dir==='asc'?'↑':'↓';}
+    else{th.classList.remove('sorted');a.textContent='↕';}
+  });
+}
+
+/* ==================== CLIENTES ==================== */
+function renderClients(){
+  const q=(document.getElementById('cSearch').value||'').toLowerCase().trim();
+  let list=_clients.map(c=>{
+    const co=ordersOf(c.name);
+    const last=[...co].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    return {c,count:co.length,total:co.reduce((s,o)=>s+(o.value||0),0),last,orders:co};
+  });
+  if(q)list=list.filter(x=>x.c.name.toLowerCase().includes(q)||(x.c.phone||'').includes(q));
+  const {key,dir}=clientsSort;const mul=dir==='asc'?1:-1;
+  list.sort((a,b)=>{
+    if(key==='orders')return (a.count-b.count)*mul;
+    if(key==='total')return (a.total-b.total)*mul;
+    return a.c.name.localeCompare(b.c.name)*mul;
+  });
+  document.getElementById('clientsSub').textContent=`${_clients.length} cliente(s) · ${_clients.filter(c=>c.recurrence!=='avulso').length} com recorrência`;
+  const tb=document.getElementById('clientsBody');
+  if(!list.length){tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ic">👥</div><h3>Nenhum cliente encontrado</h3></div></td></tr>';return;}
+  tb.innerHTML=list.map(({c,count,total,last,orders})=>`<tr>
+    <td class="cell-name link" onclick="openClientModal('${c.id}')">${esc(c.name)}</td>
+    <td class="muted">${esc(c.phone)||'-'}</td>
+    <td><span class="badge b-info">${c.recurrence}</span></td>
+    <td>${count}</td>
+    <td class="cell-val">${fmtBRL(total)}</td>
+    <td class="muted">${last?fmtDate(last.date):'-'}</td>
+    <td>${recStatusBadge(c,orders)}</td>
+    <td><div class="row-actions">
+      ${c.phone?`<button class="btn-icon" title="WhatsApp" onclick="sendWa('${esc(c.phone)}','${esc(c.name)}')">💬</button>`:''}
+      <button class="btn-icon" title="Editar" onclick="openEditClient('${c.id}')">✏️</button>
+      <button class="btn-icon danger" title="Excluir" onclick="deleteClient('${c.id}')">🗑️</button>
+    </div></td></tr>`).join('');
+  syncSortArrows('data-csort',clientsSort);
+}
+function recStatusBadge(c,orders){
+  if(c.recurrence==='avulso')return '<span class="badge b-info">Avulso</span>';
+  const cm=curMonth();
+  if(orders.some(o=>o.date&&o.date.startsWith(cm)))return '<span class="badge b-green"><span class="dot g"></span>Em dia</span>';
+  const last=[...orders].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+  const n=new Date();
+  if(isWithinRec(c.recurrence,last,n.getFullYear(),n.getMonth()+1))return '<span class="badge b-amber"><span class="dot y"></span>Na recorrência</span>';
+  return '<span class="badge b-red"><span class="dot r"></span>Pendente</span>';
+}
+function openEditClient(id){
+  const c=_clients.find(x=>x.id===id);if(!c)return;
+  document.getElementById('ecId').value=c.id;document.getElementById('ecName').value=c.name;
+  document.getElementById('ecPhone').value=c.phone||'';document.getElementById('ecRec').value=c.recurrence||'mensal';
+  openM('mEditClient');
+}
+async function saveEditClient(){
+  const id=document.getElementById('ecId').value;const name=document.getElementById('ecName').value.trim();
+  const phone=document.getElementById('ecPhone').value.trim();const recurrence=document.getElementById('ecRec').value;
+  if(!name)return toast('Informe o nome','warn');
+  try{await api('/clients/'+id,{method:'PUT',body:{name,phone,recurrence}});await refreshData();closeM('mEditClient');toast('Cliente atualizado','ok');refreshAll();}
+  catch(err){toast(err.message,'err');}
+}
+async function deleteClient(id){
+  const c=_clients.find(x=>x.id===id);const n=c?ordersOf(c.name).length:0;
+  if(!await confirmDialog(`Excluir "${c?c.name:''}" e seus ${n} pedido(s)? Esta ação não pode ser desfeita.`,{title:'Excluir cliente',icon:'🗑️'}))return;
+  try{await api('/clients/'+id,{method:'DELETE'});await refreshData();toast('Cliente excluído','ok');refreshAll();}
+  catch(err){toast(err.message,'err');}
+}
+
+/* ==================== RECORRENCIA ==================== */
+function isWithinRec(rec,last,y,m){
+  if(!last)return false;
+  const l=new Date(last.date);const ref=new Date(y,m-1,1);
+  const dm=(ref.getFullYear()-l.getFullYear())*12+(ref.getMonth()-l.getMonth());
+  switch(rec){case'semanal':case'quinzenal':return dm<=0;case'mensal':return dm<=1;case'bimestral':return dm<=2;case'trimestral':return dm<=3;default:return false;}
+}
+function renderRecurrence(){
+  const mi=document.getElementById('recMonth');if(!mi.value)mi.value=curMonth();
+  const rm=mi.value;const [y,m]=rm.split('-').map(Number);
+  const rc=_clients.filter(c=>c.recurrence!=='avulso');
+  let ok=0,no=0;
+  const rows=rc.map(c=>{
+    const co=ordersOf(c.name);const mo=co.filter(o=>o.date&&o.date.startsWith(rm));
+    const last=[...co].sort((a,b)=>new Date(b.date)-new Date(a.date))[0];
+    const mt=mo.reduce((s,o)=>s+(o.value||0),0);let l,cls;
+    if(mo.length){l='✅ Pediu';cls='b-pago';ok++;}
+    else if(isWithinRec(c.recurrence,last,y,m)){l='⏳ Na recorrência';cls='b-amber';ok++;}
+    else{l='❌ Não pediu';cls='b-red';no++;}
+    return `<tr>
+      <td class="cell-name link" onclick="openClientModal('${c.id}')">${esc(c.name)}</td>
+      <td><span class="badge b-info">${c.recurrence}</span></td>
+      <td class="muted">${last?fmtDate(last.date):'Nunca'}</td>
+      <td><span class="badge ${cls}">${l}</span></td>
+      <td class="cell-val">${fmtBRL(mt)}</td>
+      <td>${!mo.length&&c.phone?`<button class="btn btn-wa btn-sm" onclick="sendWa('${esc(c.phone)}','${esc(c.name)}')">💬 Lembrar</button>`:'<span class="faint">-</span>'}</td></tr>`;
+  });
+  document.getElementById('recStats').innerHTML=`
+    <div class="stat teal"><div class="k">Total c/ recorrência</div><div class="v">${rc.length}</div></div>
+    <div class="stat green"><div class="k">✅ Em dia</div><div class="v">${ok}</div></div>
+    <div class="stat amber"><div class="k">❌ Pendentes</div><div class="v">${no}</div></div>`;
+  document.getElementById('recBody').innerHTML=rows.length?rows.join(''):'<tr><td colspan="6"><div class="empty"><div class="ic">🔄</div><h3>Nenhum cliente com recorrência</h3></div></td></tr>';
+}
+
+/* ==================== RETENCAO ==================== */
+function recDays(r){return{semanal:7,quinzenal:15,mensal:30,bimestral:60,trimestral:90}[r]||0;}
+function getRetention(){
+  const now=new Date();now.setHours(0,0,0,0);const list=[];
+  _clients.forEach(c=>{
+    if(c.recurrence==='avulso')return;const rd=recDays(c.recurrence);if(!rd)return;
+    const co=ordersOf(c.name).sort((a,b)=>new Date(b.date)-new Date(a.date));const last=co[0];
+    let over=0,lastDate=null;
+    if(!last){const cr=new Date(c.created_at);cr.setHours(0,0,0,0);const ds=Math.floor((now-cr)/86400000);if(ds>rd)over=ds-rd;else return;}
+    else{lastDate=new Date(last.date);lastDate.setHours(0,0,0,0);const ds=Math.floor((now-lastDate)/86400000);if(ds>rd)over=ds-rd;else return;}
+    let urg=over>rd?'critical':over>Math.floor(rd/2)?'high':'medium';
+    list.push({c,last,lastDate,over,rd,urg,count:co.length,total:co.reduce((s,o)=>s+(o.value||0),0)});
+  });
+  const ord={critical:0,high:1,medium:2};
+  list.sort((a,b)=>ord[a.urg]!==ord[b.urg]?ord[a.urg]-ord[b.urg]:b.over-a.over);
+  return list;
 }
 function renderRetention(){
-    const list=getRetentionClients();
-    const ab=document.getElementById('retentionAlertBox');
-    const se=document.getElementById('retentionStats');
-    const le=document.getElementById('retentionList');
-    const cr=list.filter(r=>r.urg==='critical').length;
-    const hi=list.filter(r=>r.urg==='high').length;
-    const me=list.filter(r=>r.urg==='medium').length;
-    const tl=list.reduce((s,r)=>s+r.totalSpent,0);
-    ab.innerHTML=list.length?`<div class="retention-alert"><div class="alert-icon">🚨</div><div class="alert-text"><h3>${list.length} cliente(s) passaram do prazo!</h3><p>Entre em contato para não perdê-los.</p></div></div>`:'';
-    se.innerHTML=`
-        <div class="stat-card danger"><div class="stat-label">🔴 Crítico</div><div class="stat-value">${cr}</div><div class="stat-sub">Atraso > recorrência</div></div>
-        <div class="stat-card warning"><div class="stat-label">🟠 Alto</div><div class="stat-value">${hi}</div><div class="stat-sub">Atraso significativo</div></div>
-        <div class="stat-card"><div class="stat-label">🟡 Médio</div><div class="stat-value">${me}</div><div class="stat-sub">Passou do prazo recente</div></div>
-        <div class="stat-card accent"><div class="stat-label">💰 Faturamento em Risco</div><div class="stat-value">R$ ${tl.toFixed(2)}</div><div class="stat-sub">Total desses clientes</div></div>`;
-    if(!list.length){le.innerHTML='<div class="retention-empty"><div class="icon">🎉</div><h3>Tudo certo! Nenhum cliente atrasado.</h3><p>Todos em dia com seus pedidos.</p></div>';return;}
-    le.innerHTML=list.map(r=>{
-        const c=r.client;
-        const pct=Math.min((r.daysOverdue/r.rd)*100,100);
-        const bc=r.urg==='critical'?'var(--danger)':r.urg==='high'?'var(--warning)':'#ffb300';
-        return `<div class="retention-card urgency-${r.urg}">
-            <div class="days-overdue days-${r.urg}"><div class="days-number">${r.daysOverdue}</div><div class="days-label">dias de<br>atraso</div></div>
-            <div class="client-info">
-                <div class="client-name" onclick="openClientModal('${c.id}')">${c.name}</div>
-                <div class="client-meta"><span>📱 ${c.phone||'Sem telefone'}</span><span>🔄 ${c.recurrence} (${r.rd} dias)</span><span>📦 ${r.totalOrders} pedido(s)</span><span>💰 R$ ${r.totalSpent.toFixed(2)}</span></div>
-                <div class="client-meta"><span>📅 Último: ${r.lastDate?formatDate(r.lastOrder.date):'Nunca pediu'}</span><span>${r.urgL}</span></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;background:${bc}"></div></div>
-            </div>
-            <div class="card-actions">${c.phone?`<button class="btn btn-primary btn-sm" onclick="sendWhatsApp('${c.phone}','${c.name}')">💬 WhatsApp</button>`:''}<button class="btn btn-secondary btn-sm" onclick="openClientModal('${c.id}')">📋 Histórico</button></div>
-        </div>`;
-    }).join('');
+  const list=getRetention();
+  const cr=list.filter(r=>r.urg==='critical').length,hi=list.filter(r=>r.urg==='high').length,me=list.filter(r=>r.urg==='medium').length;
+  const risk=list.reduce((s,r)=>s+r.total,0);
+  document.getElementById('retAlert').innerHTML=list.length?`<div class="alert"><div class="ic">🚨</div><div><h3>${list.length} cliente(s) passaram do prazo!</h3><p>Entre em contato para não perder essas vendas.</p></div></div>`:'';
+  document.getElementById('retStats').innerHTML=`
+    <div class="stat red"><div class="k">🔴 Crítico</div><div class="v">${cr}</div><div class="s">Muito atrasados</div></div>
+    <div class="stat amber"><div class="k">🟠 Alto</div><div class="v">${hi}</div><div class="s">Atraso significativo</div></div>
+    <div class="stat amber"><div class="k">🟡 Médio</div><div class="v">${me}</div><div class="s">Passou do prazo recente</div></div>
+    <div class="stat teal"><div class="k">💰 Faturamento em risco</div><div class="v">${fmtBRL(risk)}</div><div class="s">Total desses clientes</div></div>`;
+  const el=document.getElementById('retList');
+  if(!list.length){el.innerHTML='<div class="empty good"><div class="ic">🎉</div><h3>Tudo certo! Nenhum cliente atrasado.</h3><p>Todos em dia com seus pedidos.</p></div>';return;}
+  el.innerHTML=list.map(r=>{
+    const c=r.c;const pct=Math.min((r.over/r.rd)*100,100);
+    const col=r.urg==='critical'?'var(--danger)':r.urg==='high'?'var(--warning)':'var(--medium)';
+    const lbl=r.urg==='critical'?'🔴 Crítico':r.urg==='high'?'🟠 Alto':'🟡 Médio';
+    return `<div class="ret-card ${r.urg}">
+      <div class="ret-days"><div class="n">${r.over}</div><div class="l">dias de<br>atraso</div></div>
+      <div class="ret-info">
+        <div class="nm" onclick="openClientModal('${c.id}')">${esc(c.name)}</div>
+        <div class="ret-meta"><span>📱 ${esc(c.phone)||'Sem telefone'}</span><span>🔄 ${c.recurrence} (${r.rd}d)</span><span>📦 ${r.count} pedido(s)</span><span>💰 ${fmtBRL(r.total)}</span></div>
+        <div class="ret-meta"><span>📅 Último: ${r.lastDate?fmtDate(r.last.date):'Nunca pediu'}</span><span><b>${lbl}</b></span></div>
+        <div class="progress"><i style="width:${pct}%;background:${col}"></i></div>
+      </div>
+      <div class="ret-actions">${c.phone?`<button class="btn btn-wa btn-sm" onclick="sendWa('${esc(c.phone)}','${esc(c.name)}')">💬 WhatsApp</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="openClientModal('${c.id}')">📋 Histórico</button></div>
+    </div>`;
+  }).join('');
 }
-function updateRetentionBadge(){
-    const n=getRetentionClients().length;
-    const btn=document.getElementById('navRetencao');
-    const ex=btn.querySelector('.badge-count');if(ex)ex.remove();
-    if(n>0){const b=document.createElement('span');b.className='badge-count';b.textContent=n;btn.appendChild(b);}
+function updateRetBadge(){
+  const n=getRetention().length;const btn=document.getElementById('tabRet');
+  const ex=btn.querySelector('.pill');if(ex)ex.remove();
+  if(n>0){const b=document.createElement('span');b.className='pill';b.textContent=n;btn.appendChild(b);}
 }
 
-// ==================== CLIENT MODAL (HISTORICO) ====================
+/* ==================== CLIENT MODAL ==================== */
+function openClientByName(name){const c=_clients.find(x=>x.name.toLowerCase()===name.toLowerCase());if(c)openClientModal(c.id);}
 function openClientModal(id){
-    const c=_clients.find(x=>x.id===id);if(!c)return;
-    document.getElementById('modalClientName').textContent='👤 '+c.name;
-    document.getElementById('modalClientInfo').innerHTML=`📱 <strong>Telefone:</strong> ${c.phone||'Não informado'} &nbsp;|&nbsp; 🔄 <strong>Recorrência:</strong> ${c.recurrence} &nbsp;|&nbsp; 📅 <strong>Desde:</strong> ${formatDate((c.created_at||'').split('T')[0])}`;
-    const co=_orders.filter(o=>o.client_name.toLowerCase()===c.name.toLowerCase()).sort((a,b)=>new Date(b.date)-new Date(a.date));
-    const tl=document.getElementById('modalTimeline');
-    if(!co.length){tl.innerHTML='<div class="empty-state">Nenhum pedido registrado.</div>';}
-    else{
-        const tot=co.reduce((s,o)=>s+(o.value||0),0);
-        tl.innerHTML=`<div style="margin-bottom:16px;padding:12px;background:#e8f5e9;border-radius:8px;font-weight:600;">💰 Total: R$ ${tot.toFixed(2)} em ${co.length} pedido(s)</div>`+
-            co.map(o=>`<div class="timeline-item"><div class="timeline-date">${formatDate(o.date)}</div><div class="timeline-value">R$ ${(o.value||0).toFixed(2)}</div>${o.obs?`<div class="timeline-obs">📝 ${o.obs}</div>`:''}</div>`).join('');
-    }
-    document.getElementById('clientModal').classList.add('active');
-}
-function closeModal(){document.getElementById('clientModal').classList.remove('active');}
-
-// ==================== WHATSAPP MESSAGE CONFIG ====================
-const DEFAULT_MSG = 'Olá {nome}! 😊 Passando para lembrar que estamos à disposição para seu pedido no Empório Pascoto. Pode nos chamar! 💚';
-
-function getWhatsAppMsg() { return localStorage.getItem('whatsapp_msg') || DEFAULT_MSG; }
-
-function saveWhatsAppMsg() {
-    const msg = document.getElementById('whatsappMsg').value.trim();
-    if (!msg) { showToast('⚠️ A mensagem não pode ficar vazia'); return; }
-    localStorage.setItem('whatsapp_msg', msg);
-    showToast('✅ Mensagem salva com sucesso!');
-    const ind = document.getElementById('savedIndicator'); ind.classList.add('show'); setTimeout(() => ind.classList.remove('show'), 2500);
-    renderMsgPreview();
+  const c=_clients.find(x=>x.id===id);if(!c)return;
+  document.getElementById('mClientName').textContent='👤 '+c.name;
+  document.getElementById('mClientInfo').innerHTML=`<span>📱 <b>${esc(c.phone)||'Não informado'}</b></span><span>🔄 <b>${c.recurrence}</b></span><span>📅 Desde <b>${fmtDate((c.created_at||'').split('T')[0])}</b></span>`;
+  const co=ordersOf(c.name).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const tl=document.getElementById('mTimeline');
+  if(!co.length){tl.innerHTML='<div class="empty"><div class="ic">📦</div><p>Nenhum pedido registrado</p></div>';}
+  else{
+    const tot=co.reduce((s,o)=>s+(o.value||0),0);
+    tl.innerHTML=`<div class="tl-total">💰 Total: ${fmtBRL(tot)} em ${co.length} pedido(s)</div><div class="timeline">`+
+      co.map(o=>`<div class="tl-item"><div class="top"><span class="tl-date">${fmtDate(o.date)}</span><span class="tl-val">${fmtBRL(o.value)}</span></div>
+        <div style="margin-top:6px">${statusBadge(st(o))}</div>${o.obs?`<div class="tl-obs">📝 ${esc(o.obs)}</div>`:''}</div>`).join('')+'</div>';
+  }
+  openM('mClient');
 }
 
-function resetWhatsAppMsg() {
-    if (!confirm('Restaurar a mensagem padrão?')) return;
-    localStorage.removeItem('whatsapp_msg');
-    document.getElementById('whatsappMsg').value = DEFAULT_MSG;
-    showToast('🔄 Mensagem padrão restaurada!');
-    renderMsgPreview();
+/* ==================== WHATSAPP MSG ==================== */
+const DEFAULT_MSG='Olá {nome}! 😊 Passando para lembrar que estamos à disposição para seu pedido no Empório Pascoto. Pode nos chamar! 💚';
+function getWaMsg(){return localStorage.getItem('whatsapp_msg')||DEFAULT_MSG;}
+function saveWaMsg(){
+  const m=document.getElementById('waMsg').value.trim();if(!m)return toast('A mensagem não pode ficar vazia','warn');
+  localStorage.setItem('whatsapp_msg',m);toast('Mensagem salva!','ok');
+  const ind=document.getElementById('savedInd');ind.classList.add('show');setTimeout(()=>ind.classList.remove('show'),2500);renderMsgPreview();
+}
+async function resetWaMsg(){
+  if(!await confirmDialog('Restaurar a mensagem padrão?',{title:'Restaurar mensagem',icon:'🔄',yes:'Restaurar',danger:false}))return;
+  localStorage.removeItem('whatsapp_msg');document.getElementById('waMsg').value=DEFAULT_MSG;toast('Mensagem padrão restaurada','ok');renderMsgPreview();
+}
+function insertVar(v){
+  const ta=document.getElementById('waMsg');const s=ta.selectionStart,e=ta.selectionEnd;
+  ta.value=ta.value.substring(0,s)+v+ta.value.substring(e);ta.selectionStart=ta.selectionEnd=s+v.length;ta.focus();renderMsgPreview();
+}
+function renderMsgPreview(){
+  const raw=document.getElementById('waMsg')?.value||getWaMsg();
+  document.getElementById('msgPreview').innerHTML=resolveMsg(raw,'Maria','(11) 99999-0000','mensal','05/03/2026').replace(/\n/g,'<br>');
+}
+function resolveMsg(t,name,phone,rec,last){
+  return t.replace(/\{nome\}/gi,name||'').replace(/\{telefone\}/gi,phone||'').replace(/\{recorrencia\}/gi,rec||'').replace(/\{ultimo_pedido\}/gi,last||'Nunca');
+}
+function sendWa(phone,name){
+  const clean=phone.replace(/\D/g,'');
+  const c=_clients.find(x=>x.name.toLowerCase()===name.toLowerCase());
+  const co=ordersOf(name).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const last=co[0]?fmtDate(co[0].date):'Nunca';
+  const msg=encodeURIComponent(resolveMsg(getWaMsg(),name,phone,c?c.recurrence:'',last));
+  window.open(`https://wa.me/55${clean}?text=${msg}`,'_blank');
+}
+function testWaMsg(){
+  const m=document.getElementById('waMsg').value.trim();if(!m)return toast('Escreva uma mensagem primeiro','warn');
+  window.open(`https://wa.me/?text=${encodeURIComponent(resolveMsg(m,'Maria','(11) 99999-0000','mensal','05/03/2026'))}`,'_blank');
 }
 
-function insertVar(v) {
-    const ta = document.getElementById('whatsappMsg');
-    const start = ta.selectionStart, end = ta.selectionEnd;
-    ta.value = ta.value.substring(0, start) + v + ta.value.substring(end);
-    ta.selectionStart = ta.selectionEnd = start + v.length;
-    ta.focus();
-    renderMsgPreview();
+/* ==================== EXPORT / IMPORT ==================== */
+async function exportJSON(){
+  try{const d=await api('/export');const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`pascoto-backup-${new Date().toISOString().split('T')[0]}.json`;a.click();toast('Backup exportado!','ok');}
+  catch(e){toast(e.message,'err');}
+  closeMenu();
+}
+function exportCSV(){
+  const rows=getFilteredOrdersForExport();
+  if(!rows.length)return toast('Nenhum pedido para exportar','warn');
+  const head=['Cliente','Data','Valor','Status','Observação'];
+  const csv=[head.join(';')].concat(rows.map(o=>[
+    `"${(o.client_name||'').replace(/"/g,'""')}"`,fmtDate(o.date),(o.value||0).toFixed(2).replace('.',','),
+    (STATUS[st(o)]||STATUS.pendente).l,`"${(o.obs||'').replace(/"/g,'""')}"`
+  ].join(';'))).join('\r\n');
+  const b=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`pascoto-pedidos-${new Date().toISOString().split('T')[0]}.csv`;a.click();
+  toast(`${rows.length} pedido(s) exportado(s)!`,'ok');closeMenu();
+}
+function getFilteredOrdersForExport(){
+  const active=document.querySelector('.tab.active').dataset.tab;
+  return active==='pedidos'?getFilteredOrders():[..._orders].sort((a,b)=>new Date(b.date)-new Date(a.date));
+}
+async function importJSON(e){
+  const file=e.target.files[0];if(!file)return;closeMenu();
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      const clients=(d.clients||[]).map(c=>({id:c.id,name:c.name,phone:c.phone||'',recurrence:c.recurrence||'mensal',created_at:c.created_at||c.createdAt||new Date().toISOString()}));
+      const orders=(d.orders||[]).map(o=>({id:o.id,client_name:o.client_name||o.clientName,date:o.date,value:o.value,obs:o.obs||'',status:o.status||'pendente',created_at:o.created_at||o.createdAt||new Date().toISOString()}));
+      if(await confirmDialog(`Importar ${clients.length} clientes e ${orders.length} pedidos? Isso SUBSTITUI todos os dados atuais.`,{title:'Importar backup',icon:'📤',yes:'Importar',danger:true})){
+        await api('/import',{method:'POST',body:{clients,orders}});await refreshData();toast('Dados importados!','ok');refreshAll();
+      }
+    }catch(err){toast('Arquivo inválido: '+err.message,'err');}
+  };
+  reader.readAsText(file);e.target.value='';
 }
 
-function renderMsgPreview() {
-    const raw = document.getElementById('whatsappMsg')?.value || getWhatsAppMsg();
-    const sample = resolveMsg(raw, 'Maria', '(11) 99999-0000', 'mensal', '05/03/2026');
-    const el = document.getElementById('msgPreview');
-    if (el) el.innerHTML = sample.replace(/\n/g, '<br>');
+/* ---------- menu ---------- */
+function closeMenu(){document.getElementById('menuDrop').classList.remove('open');}
+
+/* ---------- phone mask ---------- */
+function phoneMask(el){
+  if(!el)return;
+  el.addEventListener('input',function(){
+    let v=this.value.replace(/\D/g,'').substr(0,11);
+    if(v.length>6)this.value=`(${v.substr(0,2)}) ${v.substr(2,5)}-${v.substr(7)}`;
+    else if(v.length>2)this.value=`(${v.substr(0,2)}) ${v.substr(2)}`;
+    else if(v.length>0)this.value=`(${v}`;
+  });
 }
 
-function resolveMsg(template, name, phone, recurrence, lastOrder) {
-    return template
-        .replace(/\{nome\}/gi, name || '')
-        .replace(/\{telefone\}/gi, phone || '')
-        .replace(/\{recorrencia\}/gi, recurrence || '')
-        .replace(/\{ultimo_pedido\}/gi, lastOrder || 'Nunca');
-}
+/* ==================== INIT ==================== */
+document.addEventListener('DOMContentLoaded',async()=>{
+  document.getElementById('oDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('recMonth').value=curMonth();
 
-function sendWhatsApp(phone, name) {
-    const clean = phone.replace(/\D/g, '');
-    const c = _clients.find(x => x.name.toLowerCase() === name.toLowerCase());
-    const co = _orders.filter(o => o.client_name.toLowerCase() === name.toLowerCase()).sort((a, b) => new Date(b.date) - new Date(a.date));
-    const lastDate = co[0] ? formatDate(co[0].date) : 'Nunca';
-    const recurrence = c ? c.recurrence : '';
-    const template = getWhatsAppMsg();
-    const msg = encodeURIComponent(resolveMsg(template, name, phone, recurrence, lastDate));
-    window.open(`https://wa.me/55${clean}?text=${msg}`, '_blank');
-}
+  // nav
+  document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.tab);});
 
-function testWhatsAppMsg() {
-    const msg = document.getElementById('whatsappMsg').value.trim();
-    if (!msg) { showToast('⚠️ Escreva uma mensagem primeiro'); return; }
-    const sample = resolveMsg(msg, 'Maria', '(11) 99999-0000', 'mensal', '05/03/2026');
-    const encoded = encodeURIComponent(sample);
-    window.open(`https://wa.me/?text=${encoded}`, '_blank');
-}
+  // forms
+  document.getElementById('orderForm').addEventListener('submit',saveOrder);
+  document.getElementById('clientForm').addEventListener('submit',saveClient);
 
-// ==================== EXPORT/IMPORT ====================
-async function exportData(){
-    try{const d=await api('/export');const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`pedidos-backup-${new Date().toISOString().split('T')[0]}.json`;a.click();showToast('📥 Dados exportados!');}
-    catch(e){showToast('⚠️ '+e.message);}
-}
-async function importData(e){
-    const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=async function(ev){
-        try{
-            const d=JSON.parse(ev.target.result);
-            const clients=(d.clients||[]).map(c=>({id:c.id,name:c.name,phone:c.phone||'',recurrence:c.recurrence||'mensal',created_at:c.created_at||c.createdAt||new Date().toISOString()}));
-            const orders=(d.orders||[]).map(o=>({id:o.id,client_name:o.client_name||o.clientName,date:o.date,value:o.value,obs:o.obs||'',created_at:o.created_at||o.createdAt||new Date().toISOString()}));
-            if(confirm(`Importar ${clients.length} clientes e ${orders.length} pedidos? Isso substituirá os dados atuais.`)){
-                await api('/import',{method:'POST',body:{clients,orders}});
-                await refreshData();showToast('✅ Dados importados!');refreshAllViews();
-            }
-        }catch(e){showToast('⚠️ '+e.message);}
-    };
-    reader.readAsText(file);e.target.value='';
-}
+  // pedidos filters
+  ['fMonth','fClient','fSort'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{ordersPage=1;renderOrders();}));
+  ['fMin','fMax'].forEach(id=>document.getElementById(id).addEventListener('input',debounce(()=>{ordersPage=1;renderOrders();})));
+  document.getElementById('fSearch').addEventListener('input',debounce(()=>{ordersPage=1;renderOrders();}));
+  document.getElementById('statusChips').addEventListener('click',e=>{
+    const chip=e.target.closest('.chip');if(!chip)return;
+    filterStatus=chip.dataset.st;ordersPage=1;
+    document.querySelectorAll('#statusChips .chip').forEach(c=>c.classList.remove('active'));chip.classList.add('active');
+    renderOrders();
+  });
+  // sortable headers (orders)
+  document.querySelectorAll('th[data-sort]').forEach(th=>th.addEventListener('click',()=>{
+    const k=th.dataset.sort;
+    if(ordersSort.key===k)ordersSort.dir=ordersSort.dir==='asc'?'desc':'asc';else ordersSort={key:k,dir:k==='name'?'asc':'desc'};
+    document.getElementById('fSort').value=`${k}-${ordersSort.dir}`;ordersPage=1;renderOrders();
+  }));
+  // sortable headers (clients)
+  document.querySelectorAll('th[data-csort]').forEach(th=>th.addEventListener('click',()=>{
+    const k=th.dataset.csort;
+    if(clientsSort.key===k)clientsSort.dir=clientsSort.dir==='asc'?'desc':'asc';else clientsSort={key:k,dir:k==='name'?'asc':'desc'};
+    renderClients();
+  }));
+  document.getElementById('cSearch').addEventListener('input',debounce(renderClients));
+  document.getElementById('recMonth').addEventListener('change',renderRecurrence);
 
-// ==================== HELPERS ====================
-function formatDate(ds){if(!ds||ds==='-')return '-';const[y,m,d]=(ds||'').split('-');return d&&m&&y?`${d}/${m}/${y}`:ds;}
-function getMonthName(i){return['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][i];}
+  // dropdown menu
+  document.getElementById('menuBtn').addEventListener('click',e=>{e.stopPropagation();document.getElementById('menuDrop').classList.toggle('open');});
+  document.addEventListener('click',closeMenu);
 
-// ==================== PHONE MASK ====================
-function phoneMask(input){
-    input.addEventListener('input',function(){
-        let v=this.value.replace(/\D/g,'');
-        if(v.length>11)v=v.substr(0,11);
-        if(v.length>6)this.value=`(${v.substr(0,2)}) ${v.substr(2,5)}-${v.substr(7)}`;
-        else if(v.length>2)this.value=`(${v.substr(0,2)}) ${v.substr(2)}`;
-        else if(v.length>0)this.value=`(${v}`;
-    });
-}
+  // modals: close on overlay click + Esc
+  document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this&&this.id!=='mConfirm')closeM(this.id);}));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.overlay.active').forEach(o=>{if(o.id==='mConfirm'){closeM('mConfirm');if(_cfResolve)_cfResolve(false);}else closeM(o.id);});});
 
-// ==================== INIT ====================
-document.addEventListener('DOMContentLoaded', async ()=>{
-    document.getElementById('orderDate').value=new Date().toISOString().split('T')[0];
-    const now=new Date();
-    document.getElementById('recurrenceMonth').value=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  // masks + autofill
+  ['oPhone','cPhone','ecPhone'].forEach(id=>phoneMask(document.getElementById(id)));
+  setupAutoFill();
 
-    // Tab navigation
-    document.getElementById('navTabs').addEventListener('click',function(e){
-        const btn=e.target.closest('.nav-tab');if(!btn)return;
-        switchTab(btn.dataset.tab);
-    });
+  // wa msg
+  document.getElementById('waMsg').value=getWaMsg();
+  document.getElementById('waMsg').addEventListener('input',renderMsgPreview);
+  renderMsgPreview();
 
-    // Forms
-    document.getElementById('orderForm').addEventListener('submit', saveOrder);
-    document.getElementById('clientForm').addEventListener('submit', saveClient);
-
-    // Search inputs
-    document.getElementById('clientSearch').addEventListener('input',function(){renderClients(this.value);});
-    document.getElementById('orderSearch').addEventListener('input',renderOrders);
-    document.getElementById('filterMonth').addEventListener('change',renderOrders);
-    document.getElementById('filterClient').addEventListener('change',renderOrders);
-    document.getElementById('recurrenceMonth').addEventListener('change',renderRecurrence);
-
-    // Close modals on overlay click
-    document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('active');});});
-
-    // Phone masks
-    phoneMask(document.getElementById('orderPhone'));
-    phoneMask(document.getElementById('clientPhone'));
-    phoneMask(document.getElementById('editClientPhone'));
-
-    // Auto-fill phone when selecting existing client
-    setupAutoFill();
-
-    // Load WhatsApp message config
-    document.getElementById('whatsappMsg').value = getWhatsAppMsg();
-    document.getElementById('whatsappMsg').addEventListener('input', renderMsgPreview);
-    renderMsgPreview();
-
-    // Load data
-    showLoading();
-    try{ await refreshData(); renderDashboard(); updateRetentionBadge(); }
-    catch(e){ showToast('⚠️ Erro ao conectar: '+e.message); }
-    hideLoading();
+  // load
+  showSkeleton();
+  try{await refreshData();renderDashboard();updateRetBadge();}
+  catch(e){toast('Erro ao conectar: '+e.message,'err');document.getElementById('statsGrid').innerHTML='<div class="empty"><div class="ic">🔌</div><h3>Sem conexão com o servidor</h3><p>'+esc(e.message)+'</p></div>';}
 });
 </script>
 </body>

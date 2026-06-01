@@ -17,12 +17,17 @@ async function init() {
   if (_init) return;
   await db().batch([
     { sql: "CREATE TABLE IF NOT EXISTS clients (id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT DEFAULT '', recurrence TEXT DEFAULT 'mensal', created_at TEXT DEFAULT (datetime('now')))" },
-    { sql: "CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, client_name TEXT NOT NULL, date TEXT NOT NULL, value REAL DEFAULT 0, obs TEXT DEFAULT '', created_at TEXT DEFAULT (datetime('now')))" },
+    { sql: "CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, client_name TEXT NOT NULL, date TEXT NOT NULL, value REAL DEFAULT 0, obs TEXT DEFAULT '', status TEXT DEFAULT 'pendente', created_at TEXT DEFAULT (datetime('now')))" },
     { sql: "CREATE INDEX IF NOT EXISTS idx_oc ON orders(client_name)" },
     { sql: "CREATE INDEX IF NOT EXISTS idx_od ON orders(date)" },
   ], 'write');
+  // Migracoes idempotentes para bancos ja existentes (ignora erro se a coluna ja existe)
+  try { await db().execute("ALTER TABLE orders ADD COLUMN status TEXT DEFAULT 'pendente'"); } catch (e) { /* coluna ja existe */ }
   _init = true;
 }
+
+const VALID_STATUS = ['pendente', 'entregue', 'pago'];
+function normStatus(s) { return VALID_STATUS.includes(s) ? s : 'pendente'; }
 
 function toObj(r) {
   return r.rows.map(row => {
@@ -120,21 +125,21 @@ module.exports = async function handler(req, res) {
         return res.json(orders);
       }
       if (req.method === 'POST') {
-        const { client_name, date, value, obs, phone, recurrence } = b;
+        const { client_name, date, value, obs, phone, recurrence, status } = b;
         if (!client_name || !client_name.trim()) return res.status(400).json({ error: 'Cliente obrigatorio' });
         if (!date) return res.status(400).json({ error: 'Data obrigatoria' });
         if (value === undefined || isNaN(value)) return res.status(400).json({ error: 'Valor obrigatorio' });
         const ex = await one('SELECT * FROM clients WHERE LOWER(name)=LOWER(?)', [client_name.trim()]);
         if (!ex) await run('INSERT INTO clients(id,name,phone,recurrence,created_at)VALUES(?,?,?,?,?)', [gid(), client_name.trim(), phone || '', recurrence || 'mensal', new Date().toISOString()]);
         const nid = gid();
-        await run('INSERT INTO orders(id,client_name,date,value,obs,created_at)VALUES(?,?,?,?,?,?)', [nid, client_name.trim(), date, parseFloat(value), obs || '', new Date().toISOString()]);
+        await run('INSERT INTO orders(id,client_name,date,value,obs,status,created_at)VALUES(?,?,?,?,?,?,?)', [nid, client_name.trim(), date, parseFloat(value), obs || '', normStatus(status), new Date().toISOString()]);
         return res.status(201).json(await one('SELECT * FROM orders WHERE id=?', [nid]));
       }
       if (req.method === 'PUT' && id) {
         const ex = await one('SELECT * FROM orders WHERE id=?', [id]);
         if (!ex) return res.status(404).json({ error: 'Not found' });
-        const { date, value, obs } = b;
-        await run('UPDATE orders SET date=?,value=?,obs=? WHERE id=?', [date || ex.date, value !== undefined ? parseFloat(value) : ex.value, obs !== undefined ? obs : ex.obs, id]);
+        const { date, value, obs, status } = b;
+        await run('UPDATE orders SET date=?,value=?,obs=?,status=? WHERE id=?', [date || ex.date, value !== undefined ? parseFloat(value) : ex.value, obs !== undefined ? obs : ex.obs, status !== undefined ? normStatus(status) : (ex.status || 'pendente'), id]);
         return res.json(await one('SELECT * FROM orders WHERE id=?', [id]));
       }
       if (req.method === 'DELETE' && id) {
@@ -152,11 +157,18 @@ module.exports = async function handler(req, res) {
       const cm = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
       const mo = ords.filter(o => o.date && o.date.startsWith(cm));
       const rc = cls.filter(c => c.recurrence !== 'avulso');
+      const byStatus = (list) => ({
+        pendente: list.filter(o => (o.status || 'pendente') === 'pendente').length,
+        entregue: list.filter(o => o.status === 'entregue').length,
+        pago: list.filter(o => o.status === 'pago').length,
+      });
       return res.json({
         totalClients: cls.length, recurringClients: rc.length,
         monthOrders: mo.length, monthTotal: mo.reduce((s, o) => s + (o.value || 0), 0),
         totalOrders: ords.length, totalRevenue: ords.reduce((s, o) => s + (o.value || 0), 0),
+        avgTicket: ords.length ? ords.reduce((s, o) => s + (o.value || 0), 0) / ords.length : 0,
         pendingClients: rc.filter(c => !mo.find(o => (o.client_name || '').toLowerCase() === c.name.toLowerCase())).length,
+        statusMonth: byStatus(mo), statusTotal: byStatus(ords),
         currentMonth: cm
       });
     }
@@ -173,7 +185,7 @@ module.exports = async function handler(req, res) {
       if (!clients || !orders) return res.status(400).json({ error: 'Dados invalidos' });
       const st = [{ sql: 'DELETE FROM orders', args: [] }, { sql: 'DELETE FROM clients', args: [] }];
       for (const c of clients) st.push({ sql: 'INSERT INTO clients(id,name,phone,recurrence,created_at)VALUES(?,?,?,?,?)', args: [c.id, c.name, c.phone || '', c.recurrence || 'mensal', c.created_at || new Date().toISOString()] });
-      for (const o of orders) st.push({ sql: 'INSERT INTO orders(id,client_name,date,value,obs,created_at)VALUES(?,?,?,?,?,?)', args: [o.id, o.client_name || o.clientName, o.date, o.value, o.obs || '', o.created_at || new Date().toISOString()] });
+      for (const o of orders) st.push({ sql: 'INSERT INTO orders(id,client_name,date,value,obs,status,created_at)VALUES(?,?,?,?,?,?,?)', args: [o.id, o.client_name || o.clientName, o.date, o.value, o.obs || '', normStatus(o.status), o.created_at || new Date().toISOString()] });
       await db().batch(st, 'write');
       return res.json({ message: 'Importado', clients: clients.length, orders: orders.length });
     }
