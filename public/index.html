@@ -180,6 +180,8 @@ tbody tr:last-child td{border-bottom:none}
 .filters-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap}
 .result-summary{font-size:.84rem;color:var(--muted)}
 .result-summary b{color:var(--brand-ink);font-family:var(--font-d)}
+.bulk-sel{padding:7px 12px;border:1.5px solid var(--line-strong);border-radius:8px;font-size:.8rem;font-weight:700;font-family:inherit;background:var(--surface);color:var(--brand-ink);cursor:pointer}
+.bulk-sel:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(37,211,102,.14)}
 .search{position:relative}
 .search input{padding-left:34px;width:240px;max-width:100%}
 .search::before{content:"🔍";position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:.85rem;opacity:.55}
@@ -406,7 +408,7 @@ tbody tr:last-child td{border-bottom:none}
         <div class="form-row">
           <div class="fg"><label>Data do pedido *</label><input type="date" id="oDate" required></div>
           <div class="fg"><label>Valor (R$) *</label><input type="number" id="oValue" step="0.01" min="0" required placeholder="0,00" inputmode="decimal"></div>
-          <div class="fg"><label>Status</label><select id="oStatus"><option value="pendente">⏳ Pendente</option><option value="entregue">📦 Entregue</option><option value="pago">✅ Pago</option></select></div>
+          <div class="fg"><label>Status</label><select id="oStatus"><option value="pago" selected>✅ Pago</option><option value="pendente">⏳ Pendente</option><option value="entregue">📦 Entregue</option></select><span class="hint">Entra como Pago — troque se precisar</span></div>
         </div>
         <div class="form-row">
           <div class="fg"><label>Recorrência do cliente</label><select id="oRec"><option value="mensal">Mensal</option><option value="quinzenal">Quinzenal</option><option value="semanal">Semanal</option><option value="bimestral">Bimestral</option><option value="trimestral">Trimestral</option><option value="avulso">Avulso (sem recorrência)</option></select></div>
@@ -462,8 +464,14 @@ tbody tr:last-child td{border-bottom:none}
       </div>
       <div class="filters-foot">
         <div class="search"><input type="text" id="fSearch" placeholder="Buscar cliente ou observação..."></div>
-        <div style="display:flex;gap:10px;align-items:center">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <span class="result-summary" id="ordersSummary"></span>
+          <select id="bulkAction" class="bulk-sel" title="Aplica a TODOS os pedidos do filtro atual">
+            <option value="">Ação em massa…</option>
+            <option value="pago">✅ Marcar como Pago</option>
+            <option value="entregue">📦 Marcar como Entregue</option>
+            <option value="pendente">⏳ Marcar como Pendente</option>
+          </select>
           <button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Limpar</button>
         </div>
       </div>
@@ -883,6 +891,18 @@ function applyPeriodPreset(kind){
   document.getElementById('fFrom').value=from;document.getElementById('fTo').value=to;
   ordersPage=1;renderOrders();
 }
+async function bulkAction(status){
+  const sel=document.getElementById('bulkAction');
+  if(!status){return;}
+  const list=getFilteredOrders();sel.value='';
+  if(!list.length){toast('Nenhum pedido no filtro atual','warn');return;}
+  const lbl=STATUS[status].l;
+  if(!await confirmDialog(`Marcar os ${list.length} pedido(s) do filtro atual como "${lbl}"? Você pode trocar depois.`,{title:'Ação em massa',icon:STATUS[status].e,yes:`Marcar como ${lbl}`,danger:false}))return;
+  try{
+    const r=await api('/orders/bulk',{method:'POST',body:{ids:list.map(o=>o.id),status}});
+    await refreshData();toast(`${r.updated||list.length} pedido(s) marcados como ${lbl}`,'ok');refreshAll();
+  }catch(err){toast(err.message,'err');}
+}
 function syncSortArrows(attr,state){
   document.querySelectorAll(`th[${attr}]`).forEach(th=>{
     const k=th.getAttribute(attr);const a=th.querySelector('.arr');
@@ -1165,6 +1185,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
   }));
   ['fMin','fMax'].forEach(id=>document.getElementById(id).addEventListener('input',debounce(()=>{ordersPage=1;renderOrders();})));
   document.getElementById('fSearch').addEventListener('input',debounce(()=>{ordersPage=1;renderOrders();}));
+  document.getElementById('bulkAction').addEventListener('change',e=>bulkAction(e.target.value));
   document.getElementById('periodPresets').addEventListener('click',e=>{
     const chip=e.target.closest('.chip');if(!chip)return;
     document.querySelectorAll('#periodPresets .chip').forEach(c=>c.classList.remove('active'));chip.classList.add('active');

@@ -114,6 +114,15 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // BULK STATUS (atualiza varios pedidos de uma vez)
+    if (u.startsWith('/api/orders/bulk') && req.method === 'POST') {
+      const { ids, status } = b;
+      if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'Lista de pedidos vazia' });
+      const s = normStatus(status);
+      await db().batch(ids.map(id => ({ sql: 'UPDATE orders SET status=? WHERE id=?', args: [s, id] })), 'write');
+      return res.json({ message: 'Atualizado', updated: ids.length, status: s });
+    }
+
     // ORDERS
     if (u.startsWith('/api/orders')) {
       const id = u.replace(/^\/api\/orders\/?/, '').split(/[/?]/)[0] || null;
